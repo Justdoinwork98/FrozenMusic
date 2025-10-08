@@ -1,8 +1,10 @@
-#root {
-	max-width: 1280px;
-	margin: 0 auto;
-	padding: 2rem;
-	text-align: center;
+html, body, #root {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	font-family: sans-serif;
 }
 
 .logo {
@@ -39,4 +41,15 @@
 
 .read-the-docs {
 	color: #888;
+}
+
+.app-grid {
+	display: grid;
+	grid-template-rows: 3fr 2fr; /* timeline, preview */
+	grid-template-columns: 1fr 4fr; /* sidebar, content */
+	grid-template-areas:
+		"sidebar timeline"
+		"sidebar preview";
+	height: 100%;
+	width: 100%;
 }
