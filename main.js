@@ -1,13 +1,17 @@
 // main.js
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const MidiParser = require('midi-parser-js');
 
 function createWindow() {
 	const win = new BrowserWindow({
 		width: 1200,
 		height: 800,
 		webPreferences: {
-			preload: path.join(__dirname, 'preload.js'), // optional
+			preload: path.join(__dirname, "preload.js"),
+			contextIsolation: true,
+			nodeIntegration: false,
 		},
 	});
 
@@ -28,4 +32,57 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle("openFileDialog", async (event, options) => {
+
+	const dialogOptions = {
+		properties: ["openFile"],
+	};
+	if (options && Array.isArray(options.filters)) {
+		dialogOptions.filters = options.filters;
+	}
+	if (options && typeof options.title === "string") {
+		dialogOptions.title = options.title;
+	}
+
+	console.log("Opening file dialog...");
+	const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
+
+	if (!canceled && filePaths.length > 0) {
+		fs.readFile(filePaths[0], 'base64', (err, data) => {
+			if (err) {
+				console.error('Error reading MIDI file:', err);
+				return;
+			}
+
+			// Parse the base64 string into a JavaScript object
+			const midiData = MidiParser.parse(data);
+
+			// Log the parsed MIDI data
+			console.debug(midiData);
+
+			let numberOfTracks = midiData.track.length;
+			console.log(`Number of tracks: ${numberOfTracks}`);
+			let tracks = midiData.track;
+			tracks.forEach((track, index) => {
+				console.log(`Track ${index + 1}:`);
+				track.event.forEach(event => {
+					if (event.type === 8 || event.type === 9) { // Note off or Note on
+						console.log(`  ${event.type === 9 ? 'Note On ' : 'Note Off'} - Note: ${event.data[0]}, Velocity: ${event.data[1]}, Delta Time: ${event.deltaTime}`);
+					} else if (event.type === 11) { // Control Change
+						console.log(`  Control Change - Controller: ${event.data[0]}, Value: ${event.data[1]}, Delta Time: ${event.deltaTime}`);
+					} else if (event.type === 12) { // Program Change
+						console.log(`  Program Change - Program: ${event.data[0]}, Delta Time: ${event.deltaTime}`);
+					} else if (event.type === 14) { // Pitch Bend
+						const value = ((event.data[1] << 7) | event.data[0]) - 8192;
+						console.log(`  Pitch Bend - Value: ${value}, Delta Time: ${event.deltaTime}`);
+					}
+
+				});
+			});
+		});
+	}
+
+	return canceled ? null : filePaths[0];
 });
