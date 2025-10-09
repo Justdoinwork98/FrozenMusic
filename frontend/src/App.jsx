@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import ModelPreview from './ModelPreview.jsx'
-import Timeline from './timeline.jsx'
+import Timeline from './Timeline.jsx'
 import Sidebar from './Sidebar.jsx'
 
 function App() {
