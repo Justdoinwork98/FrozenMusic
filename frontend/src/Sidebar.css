@@ -1,0 +1,8 @@
+.sidebar {
+    grid-area: sidebar;
+    background: #727272;
+    border-right: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

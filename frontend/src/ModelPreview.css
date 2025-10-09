@@ -1,0 +1,8 @@
+.model-preview {
+    grid-area: preview;
+    background: #ff0000;
+    border-top: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

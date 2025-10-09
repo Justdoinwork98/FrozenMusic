@@ -1,0 +1,8 @@
+.timeline {
+    grid-area: timeline;
+    background: #353535;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
