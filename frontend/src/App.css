@@ -43,13 +43,37 @@ html, body, #root {
 	color: #888;
 }
 
+
 .app-grid {
-	display: grid;
-	grid-template-rows: 3fr 2fr; /* timeline, preview */
-	grid-template-columns: 1fr 4fr; /* sidebar, content */
-	grid-template-areas:
-		"sidebar timeline"
-		"sidebar preview";
-	height: 100%;
-	width: 100%;
+  display: grid;
+  grid-template-columns: minmax(180px, 20%) 1fr;
+  grid-template-rows: minmax(150px, 30%) 1fr;
+  grid-template-areas:
+    "sidebar timeline"
+    "sidebar preview";
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.sidebar {
+	grid-area: sidebar;
+	background: #727272;
+	border-right: 1px solid #ccc;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.preview {
+	grid-area: preview;
+	position: relative;
+	overflow: hidden;
+}
+
+.timeline {
+	grid-area: timeline;
+	background: #333;
+	border-top: 1px solid #555;
+	overflow: hidden;
 }
