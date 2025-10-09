@@ -67,20 +67,27 @@ ipcMain.handle("openFileDialog", async (event, options) => {
 			let tracks = midiData.track;
 			tracks.forEach((track, index) => {
 				console.log(`Track ${index + 1}:`);
-				track.event.forEach(event => {
-					if (event.type === 8 || event.type === 9) { // Note off or Note on
-						console.log(`  ${event.type === 9 ? 'Note On ' : 'Note Off'} - Note: ${event.data[0]}, Velocity: ${event.data[1]}, Delta Time: ${event.deltaTime}`);
-					} else if (event.type === 11) { // Control Change
-						console.log(`  Control Change - Controller: ${event.data[0]}, Value: ${event.data[1]}, Delta Time: ${event.deltaTime}`);
-					} else if (event.type === 12) { // Program Change
-						console.log(`  Program Change - Program: ${event.data[0]}, Delta Time: ${event.deltaTime}`);
-					} else if (event.type === 14) { // Pitch Bend
-						const value = ((event.data[1] << 7) | event.data[0]) - 8192;
-						console.log(`  Pitch Bend - Value: ${value}, Delta Time: ${event.deltaTime}`);
-					}
 
+				let absoluteTime = 0; // running total in ticks
+
+				track.event.forEach(event => {
+					absoluteTime += event.deltaTime; // accumulate time
+
+					if (event.type === 8 || (event.type === 9 && event.data[1] === 0)) {
+						console.log(`  [${absoluteTime}] Note Off - Note: ${event.data[0]}, Velocity: ${event.data[1]}`);
+					} else if (event.type === 9) {
+						console.log(`  [${absoluteTime}] Note On  - Note: ${event.data[0]}, Velocity: ${event.data[1]}`);
+					} else if (event.type === 11) {
+						console.log(`  [${absoluteTime}] Control Change - Controller: ${event.data[0]}, Value: ${event.data[1]}`);
+					} else if (event.type === 12) {
+						console.log(`  [${absoluteTime}] Program Change - Program: ${event.data[0]}`);
+					} else if (event.type === 14) {
+						const value = ((event.data[1] << 7) | event.data[0]) - 8192;
+						console.log(`  [${absoluteTime}] Pitch Bend - Value: ${value}`);
+					}
 				});
 			});
+
 		});
 	}
 
