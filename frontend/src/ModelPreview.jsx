@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "three-stdlib";
+import { OrbitControls, OBJLoader } from "three-stdlib";
 
 export default function ModelPreview() {
 	const containerRef = useRef();
@@ -11,7 +11,7 @@ export default function ModelPreview() {
 		const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 		const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-		// 👇 Make sure the canvas fills and can capture mouse events
+		// Make sure the canvas fills and can capture mouse events when resized
 		renderer.domElement.style.width = "100%";
 		renderer.domElement.style.height = "100%";
 		renderer.domElement.style.display = "block";
@@ -41,7 +41,7 @@ export default function ModelPreview() {
 
 		camera.position.z = 3;
 
-		// 👇 Ensure it resizes properly
+		// Ensure render canvas resizes properly with its parent container
 		const resize = () => {
 			const { clientWidth, clientHeight } = container;
 			renderer.setSize(clientWidth, clientHeight, false);
