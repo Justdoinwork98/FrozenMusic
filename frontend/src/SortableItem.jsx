@@ -1,8 +1,9 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ModifierParameters from "./ModifierParameters";
 
-function SortableItem({ id, modifier, isExpanded, onToggleExpand }) {
+function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
 	const style = {
@@ -14,6 +15,27 @@ function SortableItem({ id, modifier, isExpanded, onToggleExpand }) {
 		background: "#665e5eff",
 		borderRadius: "8px",
 		userSelect: "none",
+	};
+
+	// Handle parameter changes
+	const onParameterChange = async (modifierId, parameterName, newValue) => {
+		console.log(`Parameter change for track "${trackName}" modifier index ${modifierId}, parameter "${parameterName}":`, newValue);
+		await window.electronAPI.modifierParameterChange({
+			trackName: trackName,
+			modifierId: modifierId,
+			parameterName: parameterName,
+			newValue: newValue
+		});
+	};
+
+	const onFactorChange = async (modifierId, parameterName, factor) => {
+		console.log(`Factor change for track "${trackName}" modifier id ${modifierId}, parameter "${parameterName}":`, factor);
+		await window.electronAPI.modifierParameterFactorChange({
+			trackName: trackName,
+			modifierId: modifierId,
+			parameterName: parameterName,
+			factor: factor
+		});
 	};
 
 	return (
@@ -52,13 +74,11 @@ function SortableItem({ id, modifier, isExpanded, onToggleExpand }) {
 
 			{isExpanded && (
 				<div style={{ marginTop: 6, padding: 6, background: "#8d8282ff", borderRadius: 4 }}>
-					{Object.keys(modifier.parameters).map((key) => (
-						<p> {key}: {modifier.parameters[key]}</p>,
-						<div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-							<label>{key}</label>
-							<input type="text" defaultValue={modifier.parameters[key]} onClick={(e) => e.stopPropagation()} />
-						</div>
-					))}
+					<ModifierParameters
+						modifier={modifier}
+						onParameterChange={onParameterChange}
+						onFactorChange={onFactorChange}
+					/>
 				</div>
 			)}
 		</div>

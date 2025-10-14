@@ -10,4 +10,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	addModifier: (options) => ipcRenderer.invoke("addModifier", options),
 	bindParameterToMidiData: (options) => ipcRenderer.invoke("bindParameterToMidiData", options),
 	getTracks: () => ipcRenderer.invoke("getTracks"),
+	modifierParameterChange: (options) => ipcRenderer.invoke("modifierParameterChange", options),
+	modifierParameterFactorChange: (options) => ipcRenderer.invoke("modifierParameterFactorChange", options),
 });

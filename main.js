@@ -12,15 +12,17 @@ const modifierPipeline = new ModifierPipeline();
 
 modifierPipeline.addTrack("Track 1");
 modifierPipeline.addModifierToTrack("Track 1", "Translate");
-modifierPipeline.bindParameterToMidiData("Track 1", 0, "x", "startTime");
-modifierPipeline.setParameterFactor("Track 1", 0, "x", 0.002);
-modifierPipeline.bindParameterToMidiData("Track 1", 0, "y", "noteNumber");
-modifierPipeline.setParameterFactor("Track 1", 0, "y", 0.01);
+modifierPipeline.setParameter("Track 1", 1, "x", "startTime");
+modifierPipeline.setParameterFactor("Track 1", 1, "x", 0.002);
+modifierPipeline.setParameter("Track 1", 1, "y", "noteNumber");
+modifierPipeline.setParameterFactor("Track 1", 1, "y", 0.01);
+
+let win;
 
 function createWindow() {
 	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
-	const win = new BrowserWindow({
+	win = new BrowserWindow({
 		width: 1200,
 		height: 800,
 		webPreferences: {
@@ -68,6 +70,35 @@ ipcMain.handle("addModifier", async (event, options) => {
 	modifierPipeline.addModifierToTrack(trackName, modifierName);
 
 	return modifierPipeline.tracks;
+});
+
+ipcMain.handle("modifierParameterChange", async (event, options) => {
+	// Handle the parameter change logic here
+	const { trackName, modifierId, parameterName, newValue } = options;
+	console.log(`Changing parameter "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, newValue);
+	modifierPipeline.setParameter(trackName, modifierId, parameterName, newValue);
+			
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	// call onPreviewUpdate
+    win.webContents.send('previewUpdate', outputModel);
+	console.log("Parameter change handled.");
+
+	return true;
+});
+ipcMain.handle("modifierParameterFactorChange", async (event, options) => {
+	// Handle the parameter factor change logic here
+	const { trackName, modifierId, parameterName, factor } = options;
+	console.log(`Changing factor "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, factor);
+	modifierPipeline.setParameterFactor(trackName, modifierId, parameterName, factor);
+
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	// call onPreviewUpdate
+    win.webContents.send('previewUpdate', outputModel);
+	console.log("Parameter change handled.");
+
+	return true;
 });
 
 ipcMain.handle("bindParameterToMidiData", async (event, options) => {

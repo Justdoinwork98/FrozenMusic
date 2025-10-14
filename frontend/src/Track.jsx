@@ -112,6 +112,7 @@ function Track({ track, onUpdateTrack }) {
 								<SortableItem
 									key={modifier.id}
 									id={modifier.id}
+									trackName={track.name}
 									modifier={modifier}
 									isExpanded={modifierIsExpanded[modifier.id]}
 									onToggleExpand={() => toggleModifierExpand(modifier.id)}

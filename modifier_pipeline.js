@@ -56,28 +56,36 @@ class ModifierPipeline {
 		}
 	}
 
-	bindParameterToMidiData(trackName, modifierIndex, parameterName, midiDataName) {
+	setParameter(trackName, modifierId, parameterName, value) {
 		const track = this.tracks.get(trackName);
 		if (!track) {
 			throw new Error(`Track "${trackName}" not found`);
 		}
-		if (modifierIndex < 0 || modifierIndex >= track.modifiers.length) {
-			throw new Error(`Modifier index ${modifierIndex} out of range for track "${trackName}"`);
+		for (const modifier of track.modifiers) {
+			if (modifier.id === modifierId) {
+				modifier.setParameter(parameterName, value);
+				return;
+			}
 		}
-		const modifier = track.modifiers[modifierIndex];
-		modifier.bindParameterToMidiData(parameterName, midiDataName);
+		throw new Error(`Modifier with ID ${modifierId} not found in track "${trackName}"`);
 	}
 
-	setParameterFactor(trackName, modifierIndex, parameterName, factor) {
+	setParameterFactor(trackName, modifierId, parameterName, factor) {
 		const track = this.tracks.get(trackName);
 		if (!track) {
 			throw new Error(`Track "${trackName}" not found`);
 		}
-		if (modifierIndex < 0 || modifierIndex >= track.modifiers.length) {
-			throw new Error(`Modifier index ${modifierIndex} out of range for track "${trackName}"`);
+		for (const modifier of track.modifiers) {
+			if (modifier.id === modifierId) {
+				if (typeof modifier.setParameterFactor === 'function') {
+					modifier.setParameterFactor(parameterName, factor);
+					return;
+				} else {
+					throw new Error(`Modifier with ID ${modifierId} does not support parameter factors`);
+				}
+			}
 		}
-		const modifier = track.modifiers[modifierIndex];
-		modifier.setParameterFactor(parameterName, factor);
+		throw new Error(`Modifier with ID ${modifierId} not found in track "${trackName}"`);
 	}
 
 
