@@ -4,7 +4,22 @@ const path = require('path');
 const fs = require('fs');
 const MidiParser = require('midi-parser-js');
 
+
+const { Mesh } = require('./modifier.js');
+const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
+
+const modifierPipeline = new ModifierPipeline();
+
+modifierPipeline.addTrack("Track 1");
+modifierPipeline.addModifierToTrack("Track 1", "Translate");
+modifierPipeline.bindParameterToMidiData("Track 1", 0, "x", "startTime");
+modifierPipeline.setParameterFactor("Track 1", 0, "x", 0.002);
+modifierPipeline.bindParameterToMidiData("Track 1", 0, "y", "noteNumber");
+modifierPipeline.setParameterFactor("Track 1", 0, "y", 0.01);
+
 function createWindow() {
+	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
 	const win = new BrowserWindow({
 		width: 1200,
 		height: 800,
@@ -17,10 +32,13 @@ function createWindow() {
 
 	// Load the React app (in dev mode or from build)
 	if (process.env.NODE_ENV === 'development') {
-		win.loadURL('http://localhost:5173'); // Vite dev server
+		// Wait until Vite server is ready
+		win.loadURL('http://localhost:5173');
+		win.webContents.openDevTools(); // optional
 	} else {
 		win.loadFile(path.join(__dirname, 'frontend/dist/index.html'));
 	}
+
 }
 
 app.whenReady().then(() => {
@@ -32,6 +50,33 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle("getAllPossibleModifiers", async (event, trackName) => {
+	return Object.keys(modifierPipeline.availableModifiers);
+});
+
+ipcMain.handle("addModifier", async (event, options) => {
+	// Example options: { trackName: 'Track 1', modifierType: 'Translate', parameters: { x: 1, y: 0, z: 0 } }
+	const { trackName, modifierName, parameters } = options;
+
+	if (!modifierPipeline.availableModifiers[modifierName]) {
+		throw new Error(`Modifier type "${modifierName}" is not available`);
+	}
+
+	modifierPipeline.addModifierToTrack(trackName, modifierName);
+});
+
+ipcMain.handle("bindParameterToMidiData", async (event, options) => {
+	// Example options: { trackName: 'Track 1', modifierIndex: 0, parameterName: 'x', midiDataName: 'velocity' }
+	const { trackName, modifierIndex, parameterName, midiDataName } = options;
+	modifierPipeline.bindParameterToMidiData(trackName, modifierIndex, parameterName, midiDataName);
+});
+
+ipcMain.handle("getPreviewModel", async (event, options) => {
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	return outputModel;
 });
 
 ipcMain.handle("openFileDialog", async (event, options) => {
