@@ -77,7 +77,6 @@ export default function ModelPreview() {
 		animate();
 
 		return () => {
-			cancelAnimationFrame(frameId); // TODO still needed?
 			resizeObserver.disconnect();  // TODO still needed?
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
