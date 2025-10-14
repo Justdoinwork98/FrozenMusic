@@ -56,6 +56,7 @@ export default function ModelPreview() {
 			const { clientWidth, clientHeight } = container;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
+			renderer.setSize(clientWidth, clientHeight);
 		};
 
 		const resizeObserver = new ResizeObserver(resize);
@@ -77,7 +78,7 @@ export default function ModelPreview() {
 		animate();
 
 		return () => {
-			resizeObserver.disconnect();  // TODO still needed?
+			resizeObserver.disconnect();
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
 			container.removeChild(renderer.domElement);

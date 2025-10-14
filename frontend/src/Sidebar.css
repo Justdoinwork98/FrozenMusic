@@ -2,9 +2,10 @@
 	grid-area: sidebar;
 	background: #727272;
 	border-right: 1px solid #ccc;
+	padding: 16px;
+	overflow-y: auto;
 	display: flex;
-	justify-content: center;
-	align-items: center;
+	flex-direction: column;
 }
 
 .sidebar * :focus {
@@ -34,14 +35,31 @@
 }
 
 .attribute-settings {
-	margin-top: 6px;
+	margin-top: 2px;
 	background: #4d4a4a;
-	border-radius: 6px;
-	padding: 6px;
+	border-radius: 2px;
+	padding: 2px;
 }
 
 .setting-row {
 	display: flex;
 	justify-content: space-between;
 	margin: 4px 0;
+}
+
+.add-modifier-button {
+	cursor: pointer;
+	text-align: center;
+}
+
+.add-modifier-button:hover {
+	text-decoration: underline;
+}
+
+.toggle-expanded-modifier-button {
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: white;
+	font-size: 1rem;
 }

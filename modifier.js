@@ -40,6 +40,11 @@ class Mesh {
 }
 
 class Modifier {
+
+	constructor() {
+		this.id = Modifier.prototype.nextId++;
+	}
+
 	modify(mesh, midiNote) {
 		throw new Error('modify() must be implemented by subclass');
 	}
@@ -70,6 +75,8 @@ class Modifier {
 	}
 }
 
+Modifier.prototype.nextId = 1;
+
 class Translate extends Modifier {
 
 	constructor() {
@@ -78,6 +85,7 @@ class Translate extends Modifier {
 		// Default parameter values
 		this.parameters = { x: 0, y: 0, z: 0 };
 		this.parameterFactors = { x: 1, y: 1, z: 1 };
+		this.name = "Translate";
 	}
 
 	modify(mesh, midiNote) {

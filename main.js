@@ -57,14 +57,17 @@ ipcMain.handle("getAllPossibleModifiers", async (event, trackName) => {
 });
 
 ipcMain.handle("addModifier", async (event, options) => {
-	// Example options: { trackName: 'Track 1', modifierType: 'Translate', parameters: { x: 1, y: 0, z: 0 } }
-	const { trackName, modifierName, parameters } = options;
+	const { trackName, modifierName } = options;
+
+	console.log(`Adding modifier "${modifierName}" to track "${trackName}"`);
 
 	if (!modifierPipeline.availableModifiers[modifierName]) {
 		throw new Error(`Modifier type "${modifierName}" is not available`);
 	}
 
 	modifierPipeline.addModifierToTrack(trackName, modifierName);
+
+	return modifierPipeline.tracks;
 });
 
 ipcMain.handle("bindParameterToMidiData", async (event, options) => {
@@ -77,6 +80,12 @@ ipcMain.handle("getPreviewModel", async (event, options) => {
 	let inputMesh = Mesh.cube();
 	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
 	return outputModel;
+});
+
+ipcMain.handle("getTracks", async (event, options) => {
+	console.log("Getting tracks...");
+	console.log(modifierPipeline.tracks);
+	return modifierPipeline.tracks;
 });
 
 ipcMain.handle("openFileDialog", async (event, options) => {
