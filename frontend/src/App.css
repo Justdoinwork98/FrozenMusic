@@ -1,4 +1,6 @@
-html, body, #root {
+html,
+body,
+#root {
 	height: 100%;
 	width: 100%;
 	margin: 0;
@@ -13,9 +15,11 @@ html, body, #root {
 	will-change: filter;
 	transition: filter 300ms;
 }
+
 .logo:hover {
 	filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
 	filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -24,6 +28,7 @@ html, body, #root {
 	from {
 		transform: rotate(0deg);
 	}
+
 	to {
 		transform: rotate(360deg);
 	}
@@ -43,13 +48,45 @@ html, body, #root {
 	color: #888;
 }
 
+
 .app-grid {
 	display: grid;
-	grid-template-rows: 3fr 2fr; /* timeline, preview */
-	grid-template-columns: 1fr 4fr; /* sidebar, content */
+	grid-template-columns: 250px 1fr;	/* fixed sidebar, flexible main area */
+	grid-template-rows: 25% 75%;		/* timeline 25%, preview 75% */
 	grid-template-areas:
 		"sidebar timeline"
 		"sidebar preview";
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+	grid-area: sidebar;
+	background: #727272;
+	border-right: 1px solid #ccc;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 	height: 100%;
-	width: 100%;
+}
+
+/* TIMELINE */
+.timeline {
+	grid-area: timeline;
+	background: #444;
+	border-bottom: 1px solid #ccc;
+	overflow: hidden;
+}
+
+/* MODEL PREVIEW */
+.preview {
+	grid-area: preview;
+	background: #202020;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
 }

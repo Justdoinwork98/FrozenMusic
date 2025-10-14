@@ -28,12 +28,22 @@ export default function ModelPreview() {
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 		const renderer = new THREE.WebGLRenderer({ antialias: true });
-		const controls = new OrbitControls(camera, renderer.domElement);
+
+		// Make sure the canvas fills and can capture mouse events when resized
+		renderer.domElement.style.width = "100%";
+		renderer.domElement.style.height = "100%";
+		renderer.domElement.style.display = "block";
+		renderer.domElement.style.pointerEvents = "auto";
+		renderer.setPixelRatio(window.devicePixelRatio);
 
 		container.appendChild(renderer.domElement);
-		scene.background = new THREE.Color(0x202020);
 
-		// Lights
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.enableDamping = true;   // smoother rotation
+		controls.dampingFactor = 0.05;
+		controls.enableZoom = true;
+		controls.enablePan = true;
+
 		const light = new THREE.DirectionalLight(0xffffff, 1);
 		light.position.set(1, 3, 5);
 		scene.add(light);
@@ -46,9 +56,10 @@ export default function ModelPreview() {
 			const { clientWidth, clientHeight } = container;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
-			renderer.setSize(clientWidth, clientHeight);
-		}
-		window.addEventListener("resize", resize);
+		};
+
+		const resizeObserver = new ResizeObserver(resize);
+		resizeObserver.observe(container);
 		resize();
 
 		// Save refs
@@ -62,10 +73,11 @@ export default function ModelPreview() {
 			requestAnimationFrame(animate);
 			controls.update();
 			renderer.render(scene, camera);
-		}
+		};
 		animate();
 
 		return () => {
+			resizeObserver.disconnect();  // TODO still needed?
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
 			container.removeChild(renderer.domElement);
@@ -124,8 +136,6 @@ export default function ModelPreview() {
 	}, [previewModel]);
 
 	return (
-		<div className="model-preview w-full h-full">
-			<div ref={containerRef} className="w-full h-full" />
-		</div>
+		<div ref={containerRef} className="w-full h-full relative overflow-hidden" />
 	);
 }
