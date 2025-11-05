@@ -60,33 +60,3 @@ body,
 	width: 100vw;
 	overflow: hidden;
 }
-
-/* SIDEBAR */
-.sidebar {
-	grid-area: sidebar;
-	background: #727272;
-	border-right: 1px solid #ccc;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	height: 100%;
-}
-
-/* TIMELINE */
-.timeline {
-	grid-area: timeline;
-	background: #444;
-	border-bottom: 1px solid #ccc;
-	overflow: hidden;
-}
-
-/* MODEL PREVIEW */
-.preview {
-	grid-area: preview;
-	background: #202020;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	overflow: hidden;
-}

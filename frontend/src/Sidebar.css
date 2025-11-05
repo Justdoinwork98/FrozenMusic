@@ -2,7 +2,64 @@
 	grid-area: sidebar;
 	background: #727272;
 	border-right: 1px solid #ccc;
+	padding: 16px;
+	overflow-y: auto;
 	display: flex;
-	justify-content: center;
+	flex-direction: column;
+}
+
+.sidebar * :focus {
+	outline: none;
+}
+
+.upload-btn {
+	margin-bottom: 12px;
+	padding: 8px 12px;
+	border: none;
+	background-color: #0078d7;
+	color: white;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.file-info {
+	font-size: 0.9rem;
+	margin-bottom: 16px;
+}
+
+.attribute-header {
+	display: flex;
+	justify-content: space-between;
 	align-items: center;
+	font-weight: bold;
+}
+
+.attribute-settings {
+	margin-top: 2px;
+	background: #4d4a4a;
+	border-radius: 2px;
+	padding: 2px;
+}
+
+.setting-row {
+	display: flex;
+	justify-content: space-between;
+	margin: 4px 0;
+}
+
+.add-modifier-button {
+	cursor: pointer;
+	text-align: center;
+}
+
+.add-modifier-button:hover {
+	text-decoration: underline;
+}
+
+.toggle-expanded-modifier-button {
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: white;
+	font-size: 1rem;
 }

@@ -1,29 +1,30 @@
 // main.js
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const fs = require('fs');
-const MidiParser = require('midi-parser-js');
 
 
 const { Mesh } = require('./modifier.js');
 const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
+const { MidiDataManager } = require('./midi_data_manager.js');
+
+const midiDataManager = new MidiDataManager();
+midiDataManager.readMidiFile("C:/Git/FrozenMusic/midi.mid");
 
 const modifierPipeline = new ModifierPipeline();
 
 modifierPipeline.addTrack("Track 1");
 modifierPipeline.addModifierToTrack("Track 1", "Translate");
-modifierPipeline.bindParameterToMidiData("Track 1", 0, "x", "startTime");
-modifierPipeline.setParameterFactor("Track 1", 0, "x", 0.002);
-modifierPipeline.bindParameterToMidiData("Track 1", 0, "y", "noteNumber");
-modifierPipeline.setParameterFactor("Track 1", 0, "y", 0.01);
-modifierPipeline.addModifierToTrack("Track 1", "Rotate");
-modifierPipeline.bindParameterToMidiData("Track 1", 1, "angle", "velocity");
-modifierPipeline.setParameterFactor("Track 1", 1, "angle", 0.5);
+modifierPipeline.setParameter("Track 1", 1, "x", "startTime");
+modifierPipeline.setParameterFactor("Track 1", 1, "x", 0.002);
+modifierPipeline.setParameter("Track 1", 1, "y", "noteNumber");
+modifierPipeline.setParameterFactor("Track 1", 1, "y", 0.01);
+
+let win;
 
 function createWindow() {
 	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
-	const win = new BrowserWindow({
+	win = new BrowserWindow({
 		width: 1200,
 		height: 800,
 		webPreferences: {
@@ -60,14 +61,46 @@ ipcMain.handle("getAllPossibleModifiers", async (event, trackName) => {
 });
 
 ipcMain.handle("addModifier", async (event, options) => {
-	// Example options: { trackName: 'Track 1', modifierType: 'Translate', parameters: { x: 1, y: 0, z: 0 } }
-	const { trackName, modifierName, parameters } = options;
+	const { trackName, modifierName } = options;
+
+	console.log(`Adding modifier "${modifierName}" to track "${trackName}"`);
 
 	if (!modifierPipeline.availableModifiers[modifierName]) {
 		throw new Error(`Modifier type "${modifierName}" is not available`);
 	}
 
 	modifierPipeline.addModifierToTrack(trackName, modifierName);
+
+	return modifierPipeline.tracks;
+});
+
+ipcMain.handle("modifierParameterChange", async (event, options) => {
+	// Handle the parameter change logic here
+	const { trackName, modifierId, parameterName, newValue } = options;
+	console.log(`Changing parameter "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, newValue);
+	modifierPipeline.setParameter(trackName, modifierId, parameterName, newValue);
+			
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	// call onPreviewUpdate
+    win.webContents.send('previewUpdate', outputModel);
+	console.log("Parameter change handled.");
+
+	return true;
+});
+ipcMain.handle("modifierParameterFactorChange", async (event, options) => {
+	// Handle the parameter factor change logic here
+	const { trackName, modifierId, parameterName, factor } = options;
+	console.log(`Changing factor "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, factor);
+	modifierPipeline.setParameterFactor(trackName, modifierId, parameterName, factor);
+
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	// call onPreviewUpdate
+    win.webContents.send('previewUpdate', outputModel);
+	console.log("Parameter change handled.");
+
+	return true;
 });
 
 ipcMain.handle("bindParameterToMidiData", async (event, options) => {
@@ -81,6 +114,18 @@ ipcMain.handle("getPreviewModel", async (event, options) => {
 	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
 	return outputModel;
 });
+
+ipcMain.handle("getTracks", async (event, options) => {
+	console.log("Getting tracks...");
+	console.log(modifierPipeline.tracks);
+	return modifierPipeline.tracks;
+});
+
+ipcMain.handle("getMidiData", async (event, options) => {
+	console.log("Getting MIDI data...");
+	return midiDataManager.getMidiData();
+});
+
 
 ipcMain.handle("openFileDialog", async (event, options) => {
 
@@ -98,45 +143,7 @@ ipcMain.handle("openFileDialog", async (event, options) => {
 	const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
 
 	if (!canceled && filePaths.length > 0) {
-		fs.readFile(filePaths[0], 'base64', (err, data) => {
-			if (err) {
-				console.error('Error reading MIDI file:', err);
-				return;
-			}
-
-			// Parse the base64 string into a JavaScript object
-			const midiData = MidiParser.parse(data);
-
-			// Log the parsed MIDI data
-			console.debug(midiData);
-
-			let numberOfTracks = midiData.track.length;
-			console.log(`Number of tracks: ${numberOfTracks}`);
-			let tracks = midiData.track;
-			tracks.forEach((track, index) => {
-				console.log(`Track ${index + 1}:`);
-
-				let absoluteTime = 0; // running total in ticks
-
-				track.event.forEach(event => {
-					absoluteTime += event.deltaTime; // accumulate time
-
-					if (event.type === 8 || (event.type === 9 && event.data[1] === 0)) {
-						console.log(`  [${absoluteTime}] Note Off - Note: ${event.data[0]}, Velocity: ${event.data[1]}`);
-					} else if (event.type === 9) {
-						console.log(`  [${absoluteTime}] Note On  - Note: ${event.data[0]}, Velocity: ${event.data[1]}`);
-					} else if (event.type === 11) {
-						console.log(`  [${absoluteTime}] Control Change - Controller: ${event.data[0]}, Value: ${event.data[1]}`);
-					} else if (event.type === 12) {
-						console.log(`  [${absoluteTime}] Program Change - Program: ${event.data[0]}`);
-					} else if (event.type === 14) {
-						const value = ((event.data[1] << 7) | event.data[0]) - 8192;
-						console.log(`  [${absoluteTime}] Pitch Bend - Value: ${value}`);
-					}
-				});
-			});
-
-		});
+		midiDataManager.readMidiFile(filePaths[0]);
 	}
 
 	return canceled ? null : filePaths[0];

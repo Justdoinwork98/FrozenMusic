@@ -56,6 +56,7 @@ export default function ModelPreview() {
 			const { clientWidth, clientHeight } = container;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
+			renderer.setSize(clientWidth, clientHeight);
 		};
 
 		const resizeObserver = new ResizeObserver(resize);
@@ -77,7 +78,7 @@ export default function ModelPreview() {
 		animate();
 
 		return () => {
-			resizeObserver.disconnect();  // TODO still needed?
+			resizeObserver.disconnect();
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
 			container.removeChild(renderer.domElement);
@@ -90,17 +91,16 @@ export default function ModelPreview() {
 		if (!scene) return;
 
 		// Remove old model if present
+		console.log("Current modelRef:", modelRef.current);
 		if (modelRef.current) {
-			for (const previewMesh of modelRef.current) {
-				scene.remove(previewMesh);
-				previewMesh.traverse(obj => {
-					if (obj.geometry) obj.geometry.dispose();
-					if (obj.material) {
-						if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-						else obj.material.dispose();
-					}
-				});
-			}
+			scene.remove(modelRef.current);
+			modelRef.current.traverse(obj => {
+				if (obj.geometry) obj.geometry.dispose();
+				if (obj.material) {
+					if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+					else obj.material.dispose();
+				}
+			});
 			modelRef.current = null;
 		}
 

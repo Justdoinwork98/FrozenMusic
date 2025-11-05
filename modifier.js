@@ -40,6 +40,11 @@ class Mesh {
 }
 
 class Modifier {
+
+	constructor() {
+		this.id = Modifier.prototype.nextId++;
+	}
+
 	modify(mesh, midiNote) {
 		throw new Error('modify() must be implemented by subclass');
 	}
@@ -51,17 +56,19 @@ class Modifier {
 			const param = this.parameters[name];
 			if (typeof param === 'string' && midiData && param in midiData) {
 				// It's a reference to MIDI data: look it up
-				return midiData[param];
+				return midiData[param] * this.parameterFactors[name];
 			}
-			// Just a static value
-			return param;
+			else {
+				// Just a static value, return the factor
+				return this.parameterFactors[name] ?? 1;
+			}
 		}
 		throw new Error(`Parameter ${name} not found`);
 	}
 
-	bindParameterToMidiData(name, midiDataName) {
+	setParameter(name, value) {
 		if (this.parameters && name in this.parameters) {
-			this.parameters[name] = midiDataName; // Store the MIDI data name for later use
+			this.parameters[name] = value;
 		}
 	}
 
@@ -76,22 +83,25 @@ class Modifier {
 	}
 }
 
+Modifier.prototype.nextId = 1;
+
 class Translate extends Modifier {
 
 	constructor() {
 		super();
 
 		// Default parameter values
-		this.parameters = { x: 0, y: 0, z: 0 };
+		this.parameters = { x: "static", y: "static", z: "static" };
 		this.parameterFactors = { x: 1, y: 1, z: 1 };
+		this.name = "Translate";
 	}
 
 	modify(mesh, midiNote) {
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
-				x: v.x + this.getParameter('x', midiNote) * this.parameterFactors.x,
-				y: v.y + this.getParameter('y', midiNote) * this.parameterFactors.y,
-				z: v.z + this.getParameter('z', midiNote) * this.parameterFactors.z,
+				x: v.x + this.getParameter('x', midiNote),
+				y: v.y + this.getParameter('y', midiNote),
+				z: v.z + this.getParameter('z', midiNote),
 			};
 		});
 		return mesh;
