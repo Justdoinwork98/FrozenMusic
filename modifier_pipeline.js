@@ -1,4 +1,4 @@
-const { Mesh, Modifier, Translate } = require('./modifier.js');
+const { Mesh, Modifier, Translate, Scale, Rotate } = require('./modifier.js');
 
 class Track {
 	constructor(name) {
@@ -32,6 +32,8 @@ class ModifierPipeline {
 		this.tracks = new Map();
 		this.availableModifiers = {
 			'Translate': Translate,
+			'Scale': Scale,
+			'Rotate': Rotate,
 			// Add other modifiers here
 		};
 	}

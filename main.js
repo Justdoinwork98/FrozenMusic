@@ -16,6 +16,9 @@ modifierPipeline.bindParameterToMidiData("Track 1", 0, "x", "startTime");
 modifierPipeline.setParameterFactor("Track 1", 0, "x", 0.002);
 modifierPipeline.bindParameterToMidiData("Track 1", 0, "y", "noteNumber");
 modifierPipeline.setParameterFactor("Track 1", 0, "y", 0.01);
+modifierPipeline.addModifierToTrack("Track 1", "Rotate");
+modifierPipeline.bindParameterToMidiData("Track 1", 1, "angle", "velocity");
+modifierPipeline.setParameterFactor("Track 1", 1, "angle", 0.5);
 
 function createWindow() {
 	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
