@@ -85,7 +85,7 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 					<input
 						type="number"
 						value={factor}
-						step="any"
+						step="0.01"
 						onChange={(e) => handleValueChange(key, e.target.value)}
 						onClick={(e) => e.stopPropagation()}
 						style={{ width: 80, textAlign: "center" }}

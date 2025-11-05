@@ -13,30 +13,50 @@ midiDataManager.readMidiFile("C:/Git/FrozenMusic/midi.mid");
 
 const modifierPipeline = new ModifierPipeline();
 
+let openedProjectPath = null;
+
 let win;
 
-function save(filePath) {
-	const data = modifierPipeline.toJSON();
-	console.log("Saved data:", JSON.stringify(data, null, 2));
+function save(filePath, saveData) {
+	const pipelineData = modifierPipeline.toJSON();
+
+	console.log("saveData", saveData);
+
+	const data = {
+		pipeline: pipelineData,
+		...saveData,
+	};
 	// Save data to file
 	fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+	openedProjectPath = filePath;
 }
 
 function load(filePath) {
 	if (fs.existsSync(filePath)) {
 		const data = JSON.parse(fs.readFileSync(filePath));
-		modifierPipeline.fromJSON(data);
+		modifierPipeline.fromJSON(data.pipeline);
 
 		// Update the frontend with loaded tracks
 		win.webContents.send('trackUpdate', modifierPipeline.tracks);
+		openedProjectPath = filePath;
+
+		// If there is camera data, send it to the frontend
+		if (data.camera) {
+			win.webContents.send('cameraStateUpdate', data.camera);
+		}
 
 		runPipelineAndUpdatePreview();
 	}
 }
 
-function runPipelineAndUpdatePreview() {
-	let inputMesh = Mesh.cube();
+function runPipeline() {
+	let inputMesh = Mesh.sphere();
 	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	return outputModel;
+}
+
+function runPipelineAndUpdatePreview() {
+	let outputModel = runPipeline();
 	// call onPreviewUpdate
     win.webContents.send('previewUpdate', outputModel);
 }
@@ -58,7 +78,7 @@ function createWindow() {
 	if (process.env.NODE_ENV === 'development') {
 		// Wait until Vite server is ready
 		win.loadURL('http://localhost:5173');
-		win.webContents.openDevTools(); // optional
+		//win.webContents.openDevTools(); // optional
 	} else {
 		win.loadFile(path.join(__dirname, 'frontend/dist/index.html'));
 	}
@@ -98,11 +118,8 @@ ipcMain.handle("modifierParameterChange", async (event, options) => {
 	// Handle the parameter change logic here
 	const { trackName, modifierId, parameterName, newValue } = options;
 	modifierPipeline.setParameter(trackName, modifierId, parameterName, newValue);
-			
-	let inputMesh = Mesh.cube();
-	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
-	// call onPreviewUpdate
-    win.webContents.send('previewUpdate', outputModel);
+	
+	runPipelineAndUpdatePreview();
 
 	return true;
 });
@@ -123,8 +140,7 @@ ipcMain.handle("bindParameterToMidiData", async (event, options) => {
 });
 
 ipcMain.handle("getPreviewModel", async (event, options) => {
-	let inputMesh = Mesh.cube();
-	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	let outputModel = runPipeline();
 	return outputModel;
 });
 
@@ -144,18 +160,31 @@ ipcMain.handle("reorderModifier", async (event, options) => {
 });
 
 ipcMain.handle("saveProject", async (event, options) => {
-	save();
+	const saveData = options;
+
+	// If no project is opened yet, prompt for "Save As"
+	if (!openedProjectPath) {
+		const { canceled, filePath } = await dialog.showSaveDialog({
+			filters: [{ name: "JSON Files", extensions: ["json"] }],
+		});
+		if (canceled || !filePath) {
+			return;
+		}
+		openedProjectPath = filePath;
+	}
+
+	save(openedProjectPath, saveData);
 });
 
 ipcMain.handle("saveProjectAs", async (event, options) => {
+	const saveData = options;
+
 	const { canceled, filePath } = await dialog.showSaveDialog({
 		filters: [{ name: "JSON Files", extensions: ["json"] }],
 	});
 
 	if (!canceled && filePath) {
-		const data = modifierPipeline.toJSON();
-		fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-		openedProjectName = filePath;
+		save(filePath, saveData);
 	}
 
 	const projectName = path.basename(filePath);

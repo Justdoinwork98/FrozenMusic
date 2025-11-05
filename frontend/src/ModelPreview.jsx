@@ -12,9 +12,39 @@ export default function ModelPreview() {
 
 	const [previewModel, setPreviewModel] = useState(null);
 
+	// Function to get current camera state
+	const getPreviewCameraState = () => {
+		const camera = cameraRef.current;
+		const controls = controlsRef.current;
+		console.log("Getting camera state", camera.position, controls.target);
+		if (!camera || !controls) return null;
+
+		return {
+			position: camera.position.clone(),
+			target: controls.target.clone(),
+		};
+	};
+
+	const setCameraState = (cameraState) => {
+		const camera = cameraRef.current;
+		const controls = controlsRef.current;
+		console.log("Setting camera state", cameraState);
+		if (!camera || !controls || !cameraState) return;
+
+		camera.position.copy(cameraState.position);
+		controls.target.copy(cameraState.target);
+		controls.update();
+	};
+
+	// Expose camera state to backend
+	useEffect(() => {
+		window.getPreviewCameraState = getPreviewCameraState;
+	}, []);
+
 	// Subscribe to backend updates
 	useEffect(() => {
 		window.electronAPI.onPreviewUpdate(setPreviewModel);
+		window.electronAPI.onCameraStateUpdate(setCameraState);
 	}, []);
 
 	// Fetch the initial preview model
@@ -133,6 +163,14 @@ export default function ModelPreview() {
 			const mesh = new THREE.Mesh(geometry, material);
 			scene.add(mesh);
 			modelRef.current = mesh;
+
+			// Render wireframe
+			const wireframe = new THREE.WireframeGeometry(geometry);
+			const line = new THREE.LineSegments(wireframe);
+			line.material.depthTest = false; // Render on top
+			line.material.opacity = 0.5;
+			line.material.transparent = true;
+			scene.add(line);
 		}
 
 

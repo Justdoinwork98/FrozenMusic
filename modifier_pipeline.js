@@ -14,20 +14,12 @@ class Track {
 
 		let totalMesh = new Mesh();
 
-		for (const modifier of this.modifiers) {
-			console.log(`Modifier: ${modifier.constructor.name}, Parameters: ${JSON.stringify(modifier.parameters)}`);
-		}
-
 		for (const midiNote of midiData) {
 			let mesh = input.clone();
-
-			console.log("mesh input: ", mesh);
 
 			for (const modifier of this.modifiers) {
 				mesh = modifier.modify(mesh, midiNote);
 			}
-
-			console.log("mesh output: ", mesh);
 
 			totalMesh.add(mesh);
 		}

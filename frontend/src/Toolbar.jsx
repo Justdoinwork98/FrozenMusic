@@ -11,13 +11,22 @@ export default function Toolbar() {
 
 	const closeMenus = () => setOpenMenu(null);
 
+	const getSaveData = () => {
+		const cameraState = window.getPreviewCameraState();
+		return {
+			camera: cameraState,
+		};
+	}
+
 	const onSave = () => {
-		window.electronAPI.saveProject();
+		const saveData = getSaveData();
+		window.electronAPI.saveProject(saveData);
 		closeMenus();
 	}
 
 	const onSaveAs = () => {
-		window.electronAPI.saveProjectAs();
+		const saveData = getSaveData();
+		window.electronAPI.saveProjectAs(saveData);
 		closeMenus();
 	}
 

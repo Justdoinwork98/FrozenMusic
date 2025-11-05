@@ -1,20 +1,50 @@
 {
-  "Track 1": {
-    "modifiers": [
-      {
-        "id": 1,
-        "name": "Translate",
-        "parameters": {
-          "x": "startTime",
-          "y": "noteNumber",
-          "z": "static"
+  "pipeline": {
+    "Track 1": {
+      "modifiers": [
+        {
+          "id": 1,
+          "name": "Translate",
+          "parameters": {
+            "x": "startTime",
+            "y": "noteNumber",
+            "z": "static"
+          },
+          "parameterFactors": {
+            "x": 0.002,
+            "y": 0.01,
+            "z": 1
+          }
         },
-        "parameterFactors": {
-          "x": 0.002,
-          "y": 0.01,
-          "z": 1
+        {
+          "id": 2,
+          "name": "Rotate",
+          "parameters": {
+            "angle": "static",
+            "axis_x": "static",
+            "axis_y": "static",
+            "axis_z": "static"
+          },
+          "parameterFactors": {
+            "angle": 1,
+            "axis_x": 1,
+            "axis_y": 0,
+            "axis_z": 0
+          }
         }
-      }
-    ]
+      ]
+    }
+  },
+  "camera": {
+    "position": {
+      "x": 2.4247620028963652,
+      "y": 4.667323176718641,
+      "z": 20.73238682957908
+    },
+    "target": {
+      "x": 10,
+      "y": 0,
+      "z": 0
+    }
   }
 }

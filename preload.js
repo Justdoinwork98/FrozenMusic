@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	onTrackUpdate: (callback) => ipcRenderer.on('trackUpdate', (_, data) => callback(data)),
 	onPreviewUpdate: (callback) => ipcRenderer.on('previewUpdate', (_, data) => callback(data)),
 	onMidiDataUpdate: (callback) => ipcRenderer.on('midiDataUpdate', (_, data) => callback(data)),
+	onCameraStateUpdate: (callback) => ipcRenderer.on('cameraStateUpdate', (_, data) => callback(data)),
 
 	openFileDialog: (options) => ipcRenderer.invoke("openFileDialog", options),
 	getPreviewModel: () => ipcRenderer.invoke("getPreviewModel"),
@@ -15,7 +16,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	modifierParameterFactorChange: (options) => ipcRenderer.invoke("modifierParameterFactorChange", options),
 	getMidiData: () => ipcRenderer.invoke("getMidiData"),
 	reorderModifier: (options) => ipcRenderer.invoke("reorderModifier", options),
-	saveProject: () => ipcRenderer.invoke("saveProject"),
+	saveProject: (options) => ipcRenderer.invoke("saveProject", options),
 	openProject: () => ipcRenderer.invoke("openProject"),
-	saveProjectAs: () => ipcRenderer.invoke("saveProjectAs"),
+	saveProjectAs: (options) => ipcRenderer.invoke("saveProjectAs", options),
 });
