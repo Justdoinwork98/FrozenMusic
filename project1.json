@@ -1,0 +1,20 @@
+{
+  "Track 1": {
+    "modifiers": [
+      {
+        "id": 1,
+        "name": "Translate",
+        "parameters": {
+          "x": "startTime",
+          "y": "noteNumber",
+          "z": "static"
+        },
+        "parameterFactors": {
+          "x": 0.002,
+          "y": 0.01,
+          "z": 1
+        }
+      }
+    ]
+  }
+}

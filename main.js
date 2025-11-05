@@ -1,5 +1,6 @@
 // main.js
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const fs = require('fs');
 const path = require('path');
 
 
@@ -12,14 +13,33 @@ midiDataManager.readMidiFile("C:/Git/FrozenMusic/midi.mid");
 
 const modifierPipeline = new ModifierPipeline();
 
-modifierPipeline.addTrack("Track 1");
-modifierPipeline.addModifierToTrack("Track 1", "Translate");
-modifierPipeline.setParameter("Track 1", 1, "x", "startTime");
-modifierPipeline.setParameterFactor("Track 1", 1, "x", 0.002);
-modifierPipeline.setParameter("Track 1", 1, "y", "noteNumber");
-modifierPipeline.setParameterFactor("Track 1", 1, "y", 0.01);
-
 let win;
+
+function save(filePath) {
+	const data = modifierPipeline.toJSON();
+	console.log("Saved data:", JSON.stringify(data, null, 2));
+	// Save data to file
+	fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+function load(filePath) {
+	if (fs.existsSync(filePath)) {
+		const data = JSON.parse(fs.readFileSync(filePath));
+		modifierPipeline.fromJSON(data);
+
+		// Update the frontend with loaded tracks
+		win.webContents.send('trackUpdate', modifierPipeline.tracks);
+
+		runPipelineAndUpdatePreview();
+	}
+}
+
+function runPipelineAndUpdatePreview() {
+	let inputMesh = Mesh.cube();
+	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
+	// call onPreviewUpdate
+    win.webContents.send('previewUpdate', outputModel);
+}
 
 function createWindow() {
 	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
@@ -50,6 +70,8 @@ app.whenReady().then(() => {
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
 	});
+	//save();
+	load();
 });
 
 app.on('window-all-closed', () => {
@@ -63,8 +85,6 @@ ipcMain.handle("getAllPossibleModifiers", async (event, trackName) => {
 ipcMain.handle("addModifier", async (event, options) => {
 	const { trackName, modifierName } = options;
 
-	console.log(`Adding modifier "${modifierName}" to track "${trackName}"`);
-
 	if (!modifierPipeline.availableModifiers[modifierName]) {
 		throw new Error(`Modifier type "${modifierName}" is not available`);
 	}
@@ -77,28 +97,21 @@ ipcMain.handle("addModifier", async (event, options) => {
 ipcMain.handle("modifierParameterChange", async (event, options) => {
 	// Handle the parameter change logic here
 	const { trackName, modifierId, parameterName, newValue } = options;
-	console.log(`Changing parameter "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, newValue);
 	modifierPipeline.setParameter(trackName, modifierId, parameterName, newValue);
 			
 	let inputMesh = Mesh.cube();
 	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
 	// call onPreviewUpdate
     win.webContents.send('previewUpdate', outputModel);
-	console.log("Parameter change handled.");
 
 	return true;
 });
 ipcMain.handle("modifierParameterFactorChange", async (event, options) => {
 	// Handle the parameter factor change logic here
 	const { trackName, modifierId, parameterName, factor } = options;
-	console.log(`Changing factor "${parameterName}" of modifier id ${modifierId} in track "${trackName}" to value:`, factor);
 	modifierPipeline.setParameterFactor(trackName, modifierId, parameterName, factor);
 
-	let inputMesh = Mesh.cube();
-	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
-	// call onPreviewUpdate
-    win.webContents.send('previewUpdate', outputModel);
-	console.log("Parameter change handled.");
+	runPipelineAndUpdatePreview();
 
 	return true;
 });
@@ -116,16 +129,54 @@ ipcMain.handle("getPreviewModel", async (event, options) => {
 });
 
 ipcMain.handle("getTracks", async (event, options) => {
-	console.log("Getting tracks...");
-	console.log(modifierPipeline.tracks);
 	return modifierPipeline.tracks;
 });
 
 ipcMain.handle("getMidiData", async (event, options) => {
-	console.log("Getting MIDI data...");
 	return midiDataManager.getMidiData();
 });
 
+ipcMain.handle("reorderModifier", async (event, options) => {
+	const { trackName, previousIndex, newIndex } = options;
+	modifierPipeline.reorderModifier(trackName, previousIndex, newIndex);
+	runPipelineAndUpdatePreview();
+	return modifierPipeline.tracks;
+});
+
+ipcMain.handle("saveProject", async (event, options) => {
+	save();
+});
+
+ipcMain.handle("saveProjectAs", async (event, options) => {
+	const { canceled, filePath } = await dialog.showSaveDialog({
+		filters: [{ name: "JSON Files", extensions: ["json"] }],
+	});
+
+	if (!canceled && filePath) {
+		const data = modifierPipeline.toJSON();
+		fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+		openedProjectName = filePath;
+	}
+
+	const projectName = path.basename(filePath);
+
+	return canceled ? null : projectName;
+});
+
+ipcMain.handle("openProject", async (event, options) => {
+	const { canceled, filePaths } = await dialog.showOpenDialog({
+		properties: ["openFile"],
+		filters: [{ name: "JSON Files", extensions: ["json"] }],
+	});
+
+	if (!canceled && filePaths.length > 0) {
+		load(filePaths[0]);
+	}
+
+	const projectName = path.basename(filePaths[0]);
+
+	return canceled ? null : projectName;
+});
 
 ipcMain.handle("openFileDialog", async (event, options) => {
 
@@ -139,7 +190,6 @@ ipcMain.handle("openFileDialog", async (event, options) => {
 		dialogOptions.title = options.title;
 	}
 
-	console.log("Opening file dialog...");
 	const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
 
 	if (!canceled && filePaths.length > 0) {

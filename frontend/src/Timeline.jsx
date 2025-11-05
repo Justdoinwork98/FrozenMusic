@@ -9,18 +9,18 @@ function Timeline() {
 		(async () => {
 			const initialMidiData = await window.electronAPI.getMidiData();
 			setMidiData(initialMidiData);
-			console.log("Initial MIDI data loaded:", initialMidiData);
 		})();
 	}, []);
 
 	// Subscribe to MIDI data updates from backend
 	useEffect(() => {
-		window.electronAPI.onTrackUpdate(setMidiData);
+		window.electronAPI.onMidiDataUpdate(setMidiData);
 	});
 
 	return (
 		<>
 			<div className="timeline">
+				{console.log("Rendering midiData:", midiData)}
 			{ midiData && midiData.track.map((track) => {
 				let minNote = 127;
 				let maxNote = 0;
@@ -38,9 +38,7 @@ function Timeline() {
 					<div className="notes">
 						{
 							track.notes.map((note, index) => {
-								console.log(note);
 								let noteHeight = (note.note - minNote) * 10;
-								console.log(noteHeight);
 								return (<div className="note" key={index} style={{
 									transform: `translate(${note.startTime / 10}px, ${noteHeight}px)`,
 									width: `${note.duration / 10}px`,

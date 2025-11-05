@@ -27,7 +27,6 @@ function Sidebar() {
 		(async () => {
 			const initialTracks = await window.electronAPI.getTracks();
 			setTracks(initialTracks);
-			console.log("Initial tracks loaded:", initialTracks);
 		})();
 	}, []);
 
@@ -35,18 +34,12 @@ function Sidebar() {
 		<div className="sidebar">
 			<h2>Sidebar</h2>
 			<button onClick={openFile} className="upload-btn">
-				🎵 Upload MIDI File
+				Upload MIDI File
 			</button>
-
-			{filePath && (
-				<div className="file-info">
-					<p><strong>Loaded file:</strong></p>
-					<p className="file-path">{filePath}</p>
-				</div>
-			)}
 
 			<h3>Tracks</h3>
 			{tracks && Array.from(tracks.values()).map((track) => (
+				console.log("Rendering tracks:", tracks),
 			<Track key={track.name} track={track} onUpdateTrack={setTracks} />
 			))}
 

@@ -51,9 +51,10 @@ body,
 
 .app-grid {
 	display: grid;
-	grid-template-columns: 250px 1fr;	/* fixed sidebar, flexible main area */
-	grid-template-rows: 25% 75%;		/* timeline 25%, preview 75% */
+	grid-template-columns: 350px 1fr;	/* fixed sidebar, flexible main area */
+	grid-template-rows: 20px 25% 75%;		/* timeline 25%, preview 75% */
 	grid-template-areas:
+		"toolbar toolbar"
 		"sidebar timeline"
 		"sidebar preview";
 	height: 100vh;

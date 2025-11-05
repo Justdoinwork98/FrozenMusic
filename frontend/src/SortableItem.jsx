@@ -9,17 +9,10 @@ function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 	const style = {
 		transform: CSS.Translate.toString(transform),
 		transition,
-		padding: "0px",
-		width: "100%",
-		marginBottom: "6px",
-		background: "#665e5eff",
-		borderRadius: "8px",
-		userSelect: "none",
 	};
 
 	// Handle parameter changes
 	const onParameterChange = async (modifierId, parameterName, newValue) => {
-		console.log(`Parameter change for track "${trackName}" modifier index ${modifierId}, parameter "${parameterName}":`, newValue);
 		await window.electronAPI.modifierParameterChange({
 			trackName: trackName,
 			modifierId: modifierId,
@@ -29,7 +22,6 @@ function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 	};
 
 	const onFactorChange = async (modifierId, parameterName, factor) => {
-		console.log(`Factor change for track "${trackName}" modifier id ${modifierId}, parameter "${parameterName}":`, factor);
 		await window.electronAPI.modifierParameterFactorChange({
 			trackName: trackName,
 			modifierId: modifierId,
@@ -39,7 +31,7 @@ function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 	};
 
 	return (
-		<div ref={setNodeRef} style={style}>
+		<div ref={setNodeRef} style={style} className="sidebar-track">
 			<div onClick={(e) => {
 						e.stopPropagation(); // prevent drag interference
 						onToggleExpand();
@@ -50,16 +42,7 @@ function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 					<div
 						{...attributes}
 						{...listeners}
-						style={{
-							width: 24,
-							height: 24,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							background: "#665e5eff",
-							borderRadius: 4,
-							cursor: "grab",
-						}}
+						className="sortable-item-handle"
 					>
 						☰
 					</div>
@@ -67,13 +50,13 @@ function SortableItem({ id, trackName, modifier, isExpanded, onToggleExpand }) {
 				</div>
 
 				{/* Expand button */}
-				<button class="toggle-expanded-modifier-button">
+				<button className="toggle-expanded-modifier-button">
 					{isExpanded ? "▲" : "▼"}
 				</button>
 			</div>
 
 			{isExpanded && (
-				<div style={{ marginTop: 6, padding: 6, background: "#8d8282ff", borderRadius: 4 }}>
+				<div className="modifier-parameters">
 					<ModifierParameters
 						modifier={modifier}
 						onParameterChange={onParameterChange}

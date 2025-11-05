@@ -27,7 +27,7 @@ export default function ModelPreview() {
 		const container = containerRef.current;
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-		const renderer = new THREE.WebGLRenderer({ antialias: true });
+		const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
 		// Make sure the canvas fills and can capture mouse events when resized
 		renderer.domElement.style.width = "100%";
@@ -38,16 +38,22 @@ export default function ModelPreview() {
 
 		container.appendChild(renderer.domElement);
 
+		// Default camera location
+
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.enableDamping = true;   // smoother rotation
 		controls.dampingFactor = 0.05;
 		controls.enableZoom = true;
 		controls.enablePan = true;
+		controls.target.set(10, 0, 0);
+		camera.position.set(-10, 10, 0);
+		controls.update();
 
 		const light = new THREE.DirectionalLight(0xffffff, 1);
 		light.position.set(1, 3, 5);
 		scene.add(light);
 		scene.add(new THREE.AmbientLight(0x404040));
+		scene.background = new THREE.Color( 0xffffff );
 
 		camera.position.z = 3;
 
@@ -91,7 +97,6 @@ export default function ModelPreview() {
 		if (!scene) return;
 
 		// Remove old model if present
-		console.log("Current modelRef:", modelRef.current);
 		if (modelRef.current) {
 			scene.remove(modelRef.current);
 			modelRef.current.traverse(obj => {
@@ -105,8 +110,6 @@ export default function ModelPreview() {
 		}
 
 		if (!previewModel) return;
-
-		console.log("Updating preview model:", previewModel);
 
 		// previewModels is an array of { vertices: [], tris: [] }
 		for (const previewMesh of previewModel) {

@@ -1,6 +1,6 @@
 .timeline {
 	grid-area: timeline;
-	background: #353535;
+	background: var(--color-primary);
 	border-bottom: 1px solid #ccc;
 	display: flex;
 	flex-direction: column;

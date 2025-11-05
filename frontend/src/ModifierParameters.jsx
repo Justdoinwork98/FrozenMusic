@@ -9,10 +9,6 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 	useEffect(() => {
 		const state = {};
 		for (const key of Object.keys(modifier.parameters)) {
-			console.log("Initializing parameter state for key:", key);
-			console.log("Current modifier parameters:", modifier.parameters[key]);
-			console.log("Current modifier parameter factors:", modifier.parameterFactors);
-			console.log(['noteNumber', 'velocity', 'startTime', 'duration'].includes(modifier.parameters[key]))
 			state[key] = {
 				source: ['noteNumber', 'velocity', 'startTime', 'duration'].includes(modifier.parameters[key]) ? modifier.parameters[key] : "static",
 				factor: modifier.parameterFactors[key] ?? 1,
@@ -42,16 +38,12 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 				[key]: {
 				...prev[key],
 				...(prev[key].source === "static"
-					? { value: newVal }
+					? { factor: newVal }
 					: { factor: newVal }),
 				},
 			};
 			if (onParameterChange && onFactorChange) {
-				if (prev[key].source === "static") {
-					onParameterChange(modifier.id, key, newVal);
-				} else {
-					onFactorChange(modifier.id, key, newVal);
-				}
+				onFactorChange(modifier.id, key, newVal);
 			}
 			return updated;
 		});
@@ -59,14 +51,9 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 
   	return (
 		<div
-			style={{
-				marginTop: 6,
-				padding: 6,
-				background: "#8d8282ff",
-				borderRadius: 4,
-			}}
+			className="modifier-parameters-container"
 		>
-		{Object.keys(modifier.parameters).map((key) => {
+		{Object.keys(modifier.parameters).map((key, index) => {
 			const { source, factor } = parameterState[key] || {};
 			return (
 				<div
@@ -78,13 +65,14 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 						marginBottom: 6,
 					}}
 				>
-					<label style={{ marginRight: 8 }}>{key}</label>
+					<label style={{ marginRight: 8 }}>{modifier.parameterNames[index]}</label>
 					{/* Dropdown to select parameter source */}
 					<select
 						value={source}
 						onChange={(e) => handleSourceChange(key, e.target.value)}
 						style={{ marginRight: 8 }}
 						onClick={(e) => e.stopPropagation()}
+						className="parameter-source-dropdown"
 					>
 					{parameterOptions.map((option) => (
 						<option key={option} value={option}>
@@ -101,6 +89,7 @@ function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 						onChange={(e) => handleValueChange(key, e.target.value)}
 						onClick={(e) => e.stopPropagation()}
 						style={{ width: 80, textAlign: "center" }}
+						className="parameter-factor-input"
 					/>
 				</div>
 			);

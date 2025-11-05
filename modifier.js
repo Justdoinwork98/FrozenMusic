@@ -15,6 +15,13 @@ class Mesh {
 		})));
 	}
 
+	clone() {
+		return new Mesh(
+			this.vertices.slice(0),
+			this.tris.slice(0)
+		);
+	}
+
 	static cube(size = 1) {
 		const half = size / 2;
 		const vertices = [
@@ -42,6 +49,7 @@ class Mesh {
 class Modifier {
 
 	constructor() {
+		// TODO this will fail when a project was loaded with existing modifiers (and ids)
 		this.id = Modifier.prototype.nextId++;
 	}
 
@@ -81,6 +89,37 @@ class Modifier {
 			this.parameterFactors[name] = factor;
 		}
 	}
+
+	toJSON() {
+		return {
+			id: this.id,
+			name: this.name,
+			parameters: this.parameters,
+			parameterFactors: this.parameterFactors,
+		};
+	}
+
+	static fromJSON(data) {
+		let modifier;
+		switch (data.name) {
+			case 'Translate':
+				modifier = new Translate();
+				break;
+			case 'Scale':
+				modifier = new Scale();
+				break;
+			case 'Rotate':
+				modifier = new Rotate();
+				break;
+			// Add other modifiers here
+			default:
+				throw new Error(`Unknown modifier type: ${data.name}`);
+		}
+		modifier.id = data.id;
+		modifier.parameters = data.parameters;
+		modifier.parameterFactors = data.parameterFactors;
+		return modifier;
+	}
 }
 
 Modifier.prototype.nextId = 1;
@@ -93,6 +132,7 @@ class Translate extends Modifier {
 		// Default parameter values
 		this.parameters = { x: "static", y: "static", z: "static" };
 		this.parameterFactors = { x: 1, y: 1, z: 1 };
+		this.parameterNames = ['x', 'y', 'z'];
 		this.name = "Translate";
 	}
 
@@ -111,16 +151,18 @@ class Translate extends Modifier {
 class Scale extends Modifier {
 	constructor() {
 		super();
-		this.parameters = { x: 1, y: 1, z: 1 };
+		this.parameters = { x: "static", y: "static", z: "static" };
 		this.parameterFactors = { x: 1, y: 1, z: 1 };
+		this.parameterNames = ['x', 'y', 'z'];
+		this.name = "Scale";
 	}
 
 	modify(mesh, midiNote) {
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
-				x: v.x * this.getParameter('x', midiNote) * this.parameterFactors.x,
-				y: v.y * this.getParameter('y', midiNote) * this.parameterFactors.y,
-				z: v.z * this.getParameter('z', midiNote) * this.parameterFactors.z,
+				x: v.x * this.getParameter('x', midiNote),
+				y: v.y * this.getParameter('y', midiNote),
+				z: v.z * this.getParameter('z', midiNote),
 			};
 		});
 		return mesh;
@@ -130,15 +172,17 @@ class Scale extends Modifier {
 class Rotate extends Modifier {
 	constructor() {
 		super();
-		this.parameters = { angle: 0, axis_x: 1, axis_y: 0, axis_z: 0};
-		this.parameterFactors = { angle: 1, axis_x: 1, axis_y: 1, axis_z: 1 };
+		this.parameters = { angle: "static", axis_x: "static", axis_y: "static", axis_z: "static"};
+		this.parameterFactors = { angle: 1, axis_x: 1, axis_y: 0, axis_z: 0 };
+		this.parameterNames = ['angle', 'x', 'y', 'z'];
+		this.name = "Rotate";
 	}
 
 	modify(mesh, midiNote) {
-		const angleRad = (this.getParameter('angle', midiNote) * this.parameterFactors.angle) * (Math.PI / 180);
-		const axisX = this.getParameter('axis_x', midiNote) * this.parameterFactors.axis_x;
-		const axisY = this.getParameter('axis_y', midiNote) * this.parameterFactors.axis_y;
-		const axisZ = this.getParameter('axis_z', midiNote) * this.parameterFactors.axis_z;
+		const angleRad = this.getParameter('angle', midiNote) * (Math.PI / 180);
+		const axisX = this.getParameter('axis_x', midiNote);
+		const axisY = this.getParameter('axis_y', midiNote);
+		const axisZ = this.getParameter('axis_z', midiNote);
 
 		// Normalize rotation axis
 		const length = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);

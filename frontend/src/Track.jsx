@@ -12,6 +12,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import SortableItem from "./SortableItem";
+import "./Sidebar.css";
 
 function Track({ track, onUpdateTrack }) {
 	const [expanded, setExpanded] = useState(false);
@@ -23,11 +24,18 @@ function Track({ track, onUpdateTrack }) {
 	const handleDragEnd = (event) => {
 		const { active, over } = event;
 		if (active.id !== over?.id) {
-			setAttributes((items) => {
-				const oldIndex = items.findIndex((i) => i.id === active.id);
-				const newIndex = items.findIndex((i) => i.id === over.id);
-				return arrayMove(items, oldIndex, newIndex);
-			});
+			const oldIndex = track.modifiers.findIndex((i) => i.id === active.id);
+			const newIndex = track.modifiers.findIndex((i) => i.id === over.id);
+
+			(async () => {
+				const options = {
+					trackName: track.name,
+					previousIndex: oldIndex,
+					newIndex: newIndex,
+				}
+				const initialTracks = await window.electronAPI.reorderModifier(options);
+				if (onUpdateTrack) onUpdateTrack(initialTracks);
+			})();
 		}
 	};
 
@@ -62,6 +70,8 @@ function Track({ track, onUpdateTrack }) {
 			modifierName: type,
 		});
 
+		setShowDropdown(false);
+
     	if (onUpdateTrack) onUpdateTrack(newTracks);
 	};
 
@@ -70,26 +80,11 @@ function Track({ track, onUpdateTrack }) {
 	return (
 		<div
 			className="track-container"
-			style={{
-				width: "95%",
-				marginBottom: 12,
-				border: "1px solid #665e5eff",
-				borderRadius: 8,
-			}}
 		>
 			<button
 				type="button"
 				onClick={() => setExpanded(!expanded)}
-				style={{
-					width: "100%",
-					padding: 8,
-					fontWeight: "bold",
-					textAlign: "left",
-					border: "none",
-					background: "#665e5eff",
-					cursor: "pointer",
-					borderRadius: "8px 8px 0 0",
-				}}
+				className="track-header"
 			>
 				{expanded ? "▼" : "►"} {track.name}
 			</button>
@@ -105,10 +100,8 @@ function Track({ track, onUpdateTrack }) {
 							items={track.modifiers}
 							strategy={verticalListSortingStrategy}
 						>
-							{console.log("Rendering modifiers for track:", track.modifiers)}
 							{
 							track.modifiers.map((modifier) => (
-								console.log("Modifier:", modifier),
 								<SortableItem
 									key={modifier.id}
 									id={modifier.id}

@@ -1,8 +1,7 @@
 .sidebar {
 	grid-area: sidebar;
-	background: #727272;
-	border-right: 1px solid #ccc;
-	padding: 16px;
+	background: var(--color-primary);
+	padding: 1%;
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
@@ -60,6 +59,79 @@
 	cursor: pointer;
 	background: none;
 	border: none;
-	color: white;
+	color: var(--color-text);
 	font-size: 1rem;
+}
+
+.sortable-item-handle {
+	width: 24;
+	height: 24;
+	display: "flex";
+	align-items: "center";
+	justify-content: "center";
+	background: "#665e5eff";
+	border-radius: 4;
+	cursor: "grab";
+}
+
+.modifier-parameters {
+	margin-top: 6px;
+	padding: 6px;
+	background: var(--color-secondary);
+	border-radius: 4px;
+}
+
+.sidebar-track {
+	padding: 0;
+	width: 100%;
+	margin-bottom: 6px;
+	background: var(--color-secondary);
+	border-radius: 8px;
+	user-select: none;
+}
+
+.modifier-parameters-container {
+	margin-top: 6px;
+	padding: 6px;
+	background: var(--color-tertiary);
+	border-radius: 4px;
+}
+
+.track-container {
+	width: "100%";
+	margin-bottom: 12;
+	border: 1px solid var(--color-secondary);
+	border-radius: 8px;
+}
+
+.track-header {
+	width: 100%;
+	padding: 8px;
+	background: var(--color-secondary);
+	border: none;
+	color: var(--color-text);
+	font-weight: bold;
+	text-align: left;
+	cursor: pointer;
+}
+
+.parameter-source-dropdown {
+	background: var(--color-secondary);
+	border: none;
+	color: var(--color-text);
+	border-radius: 4px;
+	padding: 4px;
+}
+
+.parameter-source-dropdown option {
+	background: var(--color-primary);
+	color: var(--color-text);
+}
+
+.parameter-factor-input {
+	background: var(--color-primary);
+	border: 1px solid var(--color-secondary);
+	color: var(--color-text);
+	border-radius: 4px;
+	padding: 4px;
 }

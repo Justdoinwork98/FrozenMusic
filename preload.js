@@ -14,4 +14,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	modifierParameterChange: (options) => ipcRenderer.invoke("modifierParameterChange", options),
 	modifierParameterFactorChange: (options) => ipcRenderer.invoke("modifierParameterFactorChange", options),
 	getMidiData: () => ipcRenderer.invoke("getMidiData"),
+	reorderModifier: (options) => ipcRenderer.invoke("reorderModifier", options),
+	saveProject: () => ipcRenderer.invoke("saveProject"),
+	openProject: () => ipcRenderer.invoke("openProject"),
+	saveProjectAs: () => ipcRenderer.invoke("saveProjectAs"),
 });
