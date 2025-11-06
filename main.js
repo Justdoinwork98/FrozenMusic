@@ -9,7 +9,7 @@ const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
 const { MidiDataManager } = require('./midi_data_manager.js');
 
 const midiDataManager = new MidiDataManager();
-midiDataManager.readMidiFile("C:/Git/FrozenMusic/midi.mid");
+midiDataManager.readMidiFile("M:/Github/FrozenMusic/midi.mid");
 
 const modifierPipeline = new ModifierPipeline();
 
