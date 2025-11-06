@@ -1,5 +1,5 @@
 // main.js
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -50,7 +50,7 @@ function load(filePath) {
 }
 
 function runPipeline() {
-	let inputMesh = Mesh.sphere();
+	let inputMesh = Mesh.cube();
 	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
 	return outputModel;
 }
@@ -71,8 +71,13 @@ function createWindow() {
 			preload: path.join(__dirname, "preload.js"),
 			contextIsolation: true,
 			nodeIntegration: false,
+			autoHideMenuBar: true,
+			// Remove the default window around our app: TODO doesnt work
+			//frame: false,
 		},
 	});
+
+	Menu.setApplicationMenu(null);
 
 	// Load the React app (in dev mode or from build)
 	if (process.env.NODE_ENV === 'development') {
@@ -110,6 +115,8 @@ ipcMain.handle("addModifier", async (event, options) => {
 	}
 
 	modifierPipeline.addModifierToTrack(trackName, modifierName);
+
+	runPipelineAndUpdatePreview();
 
 	return modifierPipeline.tracks;
 });

@@ -1,184 +1,4 @@
-// Mesh class definition
-class Mesh {
-	constructor(vertices = [], tris = []) {
-		this.vertices = vertices;
-		this.tris = tris;
-	}
-
-	add(otherMesh) {
-		this.vertices = this.vertices.concat(otherMesh.vertices);
-		const vertexOffset = this.vertices.length;
-		this.tris = this.tris.concat(otherMesh.tris.map(t => ({
-			v1: t.v1 + vertexOffset,
-			v2: t.v2 + vertexOffset,
-			v3: t.v3 + vertexOffset,
-		})));
-	}
-
-	clone() {
-		return new Mesh(
-			this.vertices.slice(0),
-			this.tris.slice(0)
-		);
-	}
-
-	subdivide(iterations=1) {
-		if (iterations <= 0) return;
-
-		// Subdivide each triangle into 4 smaller triangles
-		const newVertices = [];
-		const newTris = [];
-
-		const vertexMap = new Map(); // To avoid duplicating vertices
-
-		const getMidpoint = (v1, v2) => {
-			return {
-				x: (v1.x + v2.x) / 2,
-				y: (v1.y + v2.y) / 2,
-				z: (v1.z + v2.z) / 2,
-			};
-		};
-
-		for (const tri of this.tris) {
-			const v1 = this.vertices[tri.v1];
-			const v2 = this.vertices[tri.v2];
-			const v3 = this.vertices[tri.v3];
-
-			const v1v2mid = getMidpoint(v1, v2);
-			const v2v3mid = getMidpoint(v2, v3);
-			const v3v1mid = getMidpoint(v3, v1);
-
-			const v1v2midKey = `${v1v2mid.x},${v1v2mid.y},${v1v2mid.z}`;
-			const v2v3midKey = `${v2v3mid.x},${v2v3mid.y},${v2v3mid.z}`;
-			const v3v1midKey = `${v3v1mid.x},${v3v1mid.y},${v3v1mid.z}`;
-
-			let v1v2midIndex, v2v3midIndex, v3v1midIndex;
-
-			const getOrCreateVertex = (key, vertex) => {
-				if (vertexMap.has(key)) {
-					return vertexMap.get(key);
-				} else {
-					const index = this.vertices.length + newVertices.length;
-					newVertices.push(vertex);
-					vertexMap.set(key, index);
-					return index;
-				}
-			};
-
-			v1v2midIndex = getOrCreateVertex(v1v2midKey, v1v2mid);
-			v2v3midIndex = getOrCreateVertex(v2v3midKey, v2v3mid);
-			v3v1midIndex = getOrCreateVertex(v3v1midKey, v3v1mid);
-
-			newTris.push({ v1: tri.v1, v2: v1v2midIndex, v3: v3v1midIndex });
-			newTris.push({ v1: tri.v2, v2: v2v3midIndex, v3: v1v2midIndex });
-			newTris.push({ v1: tri.v3, v2: v3v1midIndex, v3: v2v3midIndex });
-			newTris.push({ v1: v1v2midIndex, v2: v2v3midIndex, v3: v3v1midIndex });
-		}
-
-		this.vertices = this.vertices.concat(newVertices);
-		this.tris = newTris;
-
-		this.subdivide(iterations - 1);
-	}
-
-	static cube(size = 1, subdivisions = 2) {
-		const half = size / 2;
-		const vertices = [
-			{ x: -half, y: -half, z: -half },
-			{ x: half, y: -half, z: -half },
-			{ x: half, y: half, z: -half },
-			{ x: -half, y: half, z: -half },
-			{ x: -half, y: -half, z: half },
-			{ x: half, y: -half, z: half },
-			{ x: half, y: half, z: half },
-			{ x: -half, y: half, z: half },
-		];
-		const tris = [
-			{ v1: 0, v2: 1, v3: 2 }, { v1: 0, v2: 2, v3: 3 }, // back
-			{ v1: 4, v2: 5, v3: 6 }, { v1: 4, v2: 6, v3: 7 }, // front
-			{ v1: 0, v2: 1, v3: 5 }, { v1: 0, v2: 5, v3: 4 }, // bottom
-			{ v1: 2, v2: 3, v3: 7 }, { v1: 2, v2: 7, v3: 6 }, // top
-			{ v1: 1, v2: 2, v3: 6 }, { v1: 1, v2: 6, v3: 5 }, // right
-			{ v1: 0, v2: 3, v3: 7 }, { v1: 0, v2: 7, v3: 4 }, // left
-		];
-		let cube = new Mesh(vertices, tris);
-		cube.subdivide(subdivisions); // Subdivide for more detail
-		return cube;
-	}
-
-	static sphere(radius = 1, subdivisions = 2) {
-		// Golden ratio
-		const t = (1 + Math.sqrt(5)) / 2;
-
-		// Initial 12 vertices of an icosahedron
-		let vertices = [
-			{ x: -1, y:  t, z: 0 },
-			{ x:  1, y:  t, z: 0 },
-			{ x: -1, y: -t, z: 0 },
-			{ x:  1, y: -t, z: 0 },
-
-			{ x: 0, y: -1, z:  t },
-			{ x: 0, y:  1, z:  t },
-			{ x: 0, y: -1, z: -t },
-			{ x: 0, y:  1, z: -t },
-
-			{ x:  t, y: 0, z: -1 },
-			{ x:  t, y: 0, z:  1 },
-			{ x: -t, y: 0, z: -1 },
-			{ x: -t, y: 0, z:  1 },
-		];
-
-		// Normalize all initial vertices
-		for (let v of vertices) {
-			const len = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
-			v.x /= len;
-			v.y /= len;
-			v.z /= len;
-		}
-
-		// 20 faces of an icosahedron (by vertex indices)
-		const tris = [
-			{ v1: 0, v2: 11, v3: 5 },
-			{ v1: 0, v2: 5, v3: 1 },
-			{ v1: 0, v2: 1, v3: 7 },
-			{ v1: 0, v2: 7, v3: 10 },
-			{ v1: 0, v2: 10, v3: 11 },
-
-			{ v1: 1, v2: 5, v3: 9 },
-			{ v1: 5, v2: 11, v3: 4 },
-			{ v1: 11, v2: 10, v3: 2 },
-			{ v1: 10, v2: 7, v3: 6 },
-			{ v1: 7, v2: 1, v3: 8 },
-
-			{ v1: 3, v2: 9, v3: 4 },
-			{ v1: 3, v2: 4, v3: 2 },
-			{ v1: 3, v2: 2, v3: 6 },
-			{ v1: 3, v2: 6, v3: 8 },
-			{ v1: 3, v2: 8, v3: 9 },
-
-			{ v1: 4, v2: 9, v3: 5 },
-			{ v1: 2, v2: 4, v3: 11 },
-			{ v1: 6, v2: 2, v3: 10 },
-			{ v1: 8, v2: 6, v3: 7 },
-			{ v1: 9, v2: 8, v3: 1 },
-		];
-
-		const mesh = new Mesh(vertices, tris);
-
-		// Subdivide to increase resolution
-		mesh.subdivide(subdivisions);
-
-		// Normalize all vertices again (they drift off the sphere)
-		for (let v of mesh.vertices) {
-			const len = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
-			v.x = (v.x / len) * radius;
-			v.y = (v.y / len) * radius;
-			v.z = (v.z / len) * radius;
-		}
-
-		return mesh;
-	}
-}
+const { Mesh } = require('./mesh.js');
 
 class Modifier {
 
@@ -237,13 +57,19 @@ class Modifier {
 		let modifier;
 		switch (data.name) {
 			case 'Translate':
-				modifier = new Translate();
+				modifier = new TranslateModifier();
 				break;
 			case 'Scale':
-				modifier = new Scale();
+				modifier = new ScaleModifier();
 				break;
 			case 'Rotate':
-				modifier = new Rotate();
+				modifier = new RotateModifier();
+				break;
+			case 'Array':
+				modifier = new ArrayModifier();
+				break;
+			case 'Smooth':
+				modifier = new SmoothModifier();
 				break;
 			// Add other modifiers here
 			default:
@@ -252,13 +78,19 @@ class Modifier {
 		modifier.id = data.id;
 		modifier.parameters = data.parameters;
 		modifier.parameterFactors = data.parameterFactors;
+
+		// Make sure that the nextId is always ahead
+		if (modifier.id >= Modifier.prototype.nextId) {
+			Modifier.prototype.nextId = modifier.id + 1;
+		}
+
 		return modifier;
 	}
 }
 
 Modifier.prototype.nextId = 1;
 
-class Translate extends Modifier {
+class TranslateModifier extends Modifier {
 
 	constructor() {
 		super();
@@ -282,7 +114,7 @@ class Translate extends Modifier {
 	}
 }
 
-class Scale extends Modifier {
+class ScaleModifier extends Modifier {
 	constructor() {
 		super();
 		this.parameters = { x: "static", y: "static", z: "static" };
@@ -303,7 +135,7 @@ class Scale extends Modifier {
 	}
 }
 
-class Rotate extends Modifier {
+class RotateModifier extends Modifier {
 	constructor() {
 		super();
 		this.parameters = { angle: "static", axis_x: "static", axis_y: "static", axis_z: "static"};
@@ -361,5 +193,116 @@ class Rotate extends Modifier {
 	}
 }
 
+class ArrayModifier extends Modifier {
 
-module.exports = { Mesh, Modifier, Translate, Scale, Rotate };
+	constructor() {
+		super();
+
+		// Default parameter values
+		this.parameters = { count: "static", distance: "static", "axis_x": "static", "axis_y": "static", "axis_z": "static" };
+		this.parameterFactors = { count: 2, distance: 1, axis_x: 1, axis_y: 0, axis_z: 0 };
+		this.parameterNames = ['count', 'distance', 'x', 'y', 'z'];
+		this.name = "Array";
+	}
+
+	modify(mesh, midiNote) {
+		const count = Math.max(1, Math.floor(this.getParameter('count', midiNote)));
+		const distance = this.getParameter('distance', midiNote);
+		const axisX = this.getParameter('axis_x', midiNote);
+		const axisY = this.getParameter('axis_y', midiNote);
+		const axisZ = this.getParameter('axis_z', midiNote);
+
+		for (let i = 0; i < count; i++) {
+			const offsetX = axisX * distance * i;
+			const offsetY = axisY * distance * i;
+			const offsetZ = axisZ * distance * i;
+
+			const vertexOffset = mesh.vertices.length;
+
+			let newVertices = mesh.vertices.map(v => {
+				return {
+					x: v.x + offsetX,
+					y: v.y + offsetY,
+					z: v.z + offsetZ
+				};
+			});
+			mesh.vertices.push(...newVertices);
+
+			// Add the triangles for the new vertices (identical but with offset)
+			mesh.tris.push(...mesh.tris.map(t => ({
+				v1: t.v1 + vertexOffset,
+				v2: t.v2 + vertexOffset,
+				v3: t.v3 + vertexOffset,
+			})));
+		}
+		return mesh;
+	}
+}
+
+class SmoothModifier extends Modifier {
+
+	constructor() {
+		super();
+
+		// Default parameter values
+		this.parameters = { smoothness: "static" };
+		this.parameterFactors = { smoothness: 1 };
+		this.parameterNames = ['smoothness'];
+		this.name = "Smooth";
+	}
+
+	modify(mesh, midiNote) {
+		const smoothnessIterations = Math.floor(this.getParameter('smoothness', midiNote)) + 1;
+		const smoothnessFinal = this.getParameter('smoothness', midiNote) - smoothnessIterations;
+
+		// Simple Laplacian smoothing
+		const vertexNeighbors = new Array(mesh.vertices.length).fill(0).map(() => []);
+
+		// Build neighbor list
+		for (const tri of mesh.tris) {
+			vertexNeighbors[tri.v1].push(tri.v2, tri.v3);
+			vertexNeighbors[tri.v2].push(tri.v1, tri.v3);
+			vertexNeighbors[tri.v3].push(tri.v1, tri.v2);
+		}
+
+		console.log("Before smoothed mesh size: ", mesh.vertices.length, " vertices, ", mesh.tris.length, " triangles.");
+
+		for (let i = 0; i < smoothnessIterations; i++) {
+			let smoothFactor = (i === smoothnessIterations - 1) ? smoothnessFinal : 1;
+
+			const newVertices = mesh.vertices.map((v, idx) => {
+				// Find the neighbours and verify there are any
+				const neighbors = vertexNeighbors[idx];
+				if (neighbors.length === 0) return v;
+
+				// Compute the average position of neighbors
+				let avgX = 0, avgY = 0, avgZ = 0;
+				for (const nIdx of neighbors) {
+					avgX += mesh.vertices[nIdx].x;
+					avgY += mesh.vertices[nIdx].y;
+					avgZ += mesh.vertices[nIdx].z;
+				}
+				avgX /= neighbors.length;
+				avgY /= neighbors.length;
+				avgZ /= neighbors.length;
+
+				// Move vertex towards average position
+				return {
+					x: v.x * (1.0 - smoothFactor) + avgX * smoothFactor,
+					y: v.y * (1.0 - smoothFactor) + avgY * smoothFactor,
+					z: v.z * (1.0 - smoothFactor) + avgZ * smoothFactor,
+				};
+			});
+
+			mesh.vertices = newVertices;
+		}
+
+		console.log("Final smoothed mesh size: ", mesh.vertices.length, " vertices, ", mesh.tris.length, " triangles.");
+
+		return mesh;
+	}
+}
+
+
+
+module.exports = { Mesh, Modifier, TranslateModifier, ScaleModifier, RotateModifier, ArrayModifier, SmoothModifier };

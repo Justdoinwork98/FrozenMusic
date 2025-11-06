@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 function ModifierParameters({ modifier, onParameterChange, onFactorChange }) {
 	const [parameterState, setParameterState] = useState({});
 
-	const parameterOptions = ["static", "noteNumber", "velocity", "startTime", "duration"];
+	const parameterOptions = ["static", "noteNumber", "normalizedNote", "velocity", "startTime", "duration"];
 
 	// Initialize local state based on modifier
 	useEffect(() => {
 		const state = {};
 		for (const key of Object.keys(modifier.parameters)) {
 			state[key] = {
-				source: ['noteNumber', 'velocity', 'startTime', 'duration'].includes(modifier.parameters[key]) ? modifier.parameters[key] : "static",
+				source: ['noteNumber', 'normalizedNote', 'velocity', 'startTime', 'duration'].includes(modifier.parameters[key]) ? modifier.parameters[key] : "static",
 				factor: modifier.parameterFactors[key] ?? 1,
 			};
 		}

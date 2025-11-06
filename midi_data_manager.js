@@ -41,11 +41,26 @@ class MidiDataManager {
 				let absoluteTime = 0; // running total in ticks
 				const activeNotes = new Map(); // note -> { startTime, velocity }
 
+				const minNote = track.event.reduce((min, event) => {
+					if ((event.type === 9) && (event.data[1] > 0)) { // NOTE ON with velocity > 0
+						return Math.min(min, event.data[0]);
+					}
+					return min;
+				}, 127);
+
+				const maxNote = track.event.reduce((max, event) => {
+					if ((event.type === 9) && (event.data[1] > 0)) { // NOTE ON with velocity > 0
+						return Math.max(max, event.data[0]);
+					}
+					return max;
+				}, 0);
+
 				track.event.forEach((event) => {
 					absoluteTime += event.deltaTime;
 					// NOTE OFF
 					if (event.type === 8 || (event.type === 9 && event.data[1] === 0)) {
 						const note = event.data[0];
+						const normalizedNote = (note - minNote) / (maxNote - minNote);
 
 						// Find the corresponding NOTE ON event
 						if (activeNotes.has(note)) {
@@ -53,6 +68,7 @@ class MidiDataManager {
 							const duration = absoluteTime - startTime;
 							processedTrack.notes.push({
 								note,
+								normalizedNote,
 								startTime,
 								duration,
 								velocity

@@ -18,6 +18,7 @@ function Track({ track, onUpdateTrack }) {
 	const [expanded, setExpanded] = useState(false);
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [modifierIsExpanded, setModifierIsExpanded] = useState(new Map());
+	const [modifierOptions, setModifierOptions] = useState([]);
 
 	const sensors = useSensors(useSensor(PointerSensor));
 
@@ -75,7 +76,12 @@ function Track({ track, onUpdateTrack }) {
     	if (onUpdateTrack) onUpdateTrack(newTracks);
 	};
 
-	const modifierOptions = ["Translate", "Rotate", "Scale"];
+	useEffect(() => {
+		(async () => {
+			const options = await window.electronAPI.getAllPossibleModifiers(track.name);
+			setModifierOptions(options);
+		})()
+	});
 
 	return (
 		<div

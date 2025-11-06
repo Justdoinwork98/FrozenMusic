@@ -3,6 +3,36 @@
     "Track 1": {
       "modifiers": [
         {
+          "id": 3,
+          "name": "Scale",
+          "parameters": {
+            "x": "static",
+            "y": "static",
+            "z": "static"
+          },
+          "parameterFactors": {
+            "x": 1,
+            "y": 2,
+            "z": 1
+          }
+        },
+        {
+          "id": 2,
+          "name": "Rotate",
+          "parameters": {
+            "angle": "startTime",
+            "axis_x": "static",
+            "axis_y": "static",
+            "axis_z": "static"
+          },
+          "parameterFactors": {
+            "angle": 1.03,
+            "axis_x": 1,
+            "axis_y": 0,
+            "axis_z": 0
+          }
+        },
+        {
           "id": 1,
           "name": "Translate",
           "parameters": {
@@ -15,36 +45,20 @@
             "y": 0.01,
             "z": 1
           }
-        },
-        {
-          "id": 2,
-          "name": "Rotate",
-          "parameters": {
-            "angle": "static",
-            "axis_x": "static",
-            "axis_y": "static",
-            "axis_z": "static"
-          },
-          "parameterFactors": {
-            "angle": 1,
-            "axis_x": 1,
-            "axis_y": 0,
-            "axis_z": 0
-          }
         }
       ]
     }
   },
   "camera": {
     "position": {
-      "x": 2.4247620028963652,
-      "y": 4.667323176718641,
-      "z": 20.73238682957908
+      "x": 7.856513108255619,
+      "y": 2.2876716281911422,
+      "z": 3.2486053742629615
     },
     "target": {
-      "x": 10,
-      "y": 0,
-      "z": 0
+      "x": 5.213358448280807,
+      "y": 0.5518471261917863,
+      "z": 0.23191288079109298
     }
   }
 }

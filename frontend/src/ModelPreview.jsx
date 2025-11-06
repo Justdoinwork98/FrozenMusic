@@ -8,6 +8,7 @@ export default function ModelPreview() {
 	const cameraRef = useRef();
 	const rendererRef = useRef();
 	const modelRef = useRef();       // current preview model
+	const wireframeRef = useRef();
 	const controlsRef = useRef();
 
 	const [previewModel, setPreviewModel] = useState(null);
@@ -139,6 +140,11 @@ export default function ModelPreview() {
 			modelRef.current = null;
 		}
 
+		if (wireframeRef.current) {
+			scene.remove(wireframeRef.current);
+			wireframeRef.current = null;
+		}
+
 		if (!previewModel) return;
 
 		// previewModels is an array of { vertices: [], tris: [] }
@@ -171,6 +177,7 @@ export default function ModelPreview() {
 			line.material.opacity = 0.5;
 			line.material.transparent = true;
 			scene.add(line);
+			wireframeRef.current = line;
 		}
 
 
