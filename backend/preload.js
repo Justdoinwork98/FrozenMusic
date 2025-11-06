@@ -5,18 +5,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	onPreviewUpdate: (callback) => ipcRenderer.on('previewUpdate', (_, data) => callback(data)),
 	onMidiDataUpdate: (callback) => ipcRenderer.on('midiDataUpdate', (_, data) => callback(data)),
 	onCameraStateUpdate: (callback) => ipcRenderer.on('cameraStateUpdate', (_, data) => callback(data)),
+	onNodeNetworkUpdate: (callback) => ipcRenderer.on('nodeNetworkUpdate', (_, data) => callback(data)),
 
 	openFileDialog: (options) => ipcRenderer.invoke("openFileDialog", options),
 	getPreviewModel: () => ipcRenderer.invoke("getPreviewModel"),
-	getAllPossibleModifiers: (trackName) => ipcRenderer.invoke("getAllPossibleModifiers", trackName),
-	addModifier: (options) => ipcRenderer.invoke("addModifier", options),
-	bindParameterToMidiData: (options) => ipcRenderer.invoke("bindParameterToMidiData", options),
-	getTracks: () => ipcRenderer.invoke("getTracks"),
-	modifierParameterChange: (options) => ipcRenderer.invoke("modifierParameterChange", options),
-	modifierParameterFactorChange: (options) => ipcRenderer.invoke("modifierParameterFactorChange", options),
-	getMidiData: () => ipcRenderer.invoke("getMidiData"),
-	reorderModifier: (options) => ipcRenderer.invoke("reorderModifier", options),
 	saveProject: (options) => ipcRenderer.invoke("saveProject", options),
 	openProject: () => ipcRenderer.invoke("openProject"),
 	saveProjectAs: (options) => ipcRenderer.invoke("saveProjectAs", options),
+	getNodeNetwork: () => ipcRenderer.invoke("getNodeNetwork"),
+
+	// Node network actions
+	setActiveNetwork: (networkId) => ipcRenderer.invoke("setActiveNetwork", networkId),
+	createNode: (nodeType) => ipcRenderer.invoke("createNode", nodeType),
+	deleteNode: (nodeId) => ipcRenderer.invoke("deleteNode", nodeId),
+	addConnection: (fromNodeId, outputIndex, toNodeId, inputIndex) => ipcRenderer.invoke("addConnection", { fromNodeId, outputIndex, toNodeId, inputIndex }),
+	removeConnection: (fromNodeId, outputIndex, toNodeId, inputIndex) => ipcRenderer.invoke("removeConnection", { fromNodeId, outputIndex, toNodeId, inputIndex }),
 });

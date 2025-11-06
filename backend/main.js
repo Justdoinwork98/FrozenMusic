@@ -2,64 +2,11 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { Pipeline } = require('./pipeline.js');
 
-
-const { Mesh } = require('./nodes/modifier.js');
-const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
-const { MidiDataManager } = require('./midi_data_manager.js');
-
-const midiDataManager = new MidiDataManager();
-midiDataManager.readMidiFile("C:/Git/FrozenMusic/midi.mid");
-
-const modifierPipeline = new ModifierPipeline();
-
-let openedProjectPath = null;
+const pipeline = new Pipeline();
 
 let win;
-
-function save(filePath, saveData) {
-	const pipelineData = modifierPipeline.toJSON();
-
-	console.log("saveData", saveData);
-
-	const data = {
-		pipeline: pipelineData,
-		...saveData,
-	};
-	// Save data to file
-	fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-	openedProjectPath = filePath;
-}
-
-function load(filePath) {
-	if (fs.existsSync(filePath)) {
-		const data = JSON.parse(fs.readFileSync(filePath));
-		modifierPipeline.fromJSON(data.pipeline);
-
-		// Update the frontend with loaded tracks
-		win.webContents.send('trackUpdate', modifierPipeline.tracks);
-		openedProjectPath = filePath;
-
-		// If there is camera data, send it to the frontend
-		if (data.camera) {
-			win.webContents.send('cameraStateUpdate', data.camera);
-		}
-
-		runPipelineAndUpdatePreview();
-	}
-}
-
-function runPipeline() {
-	let inputMesh = Mesh.cube();
-	const outputModel = modifierPipeline.runModifierPipeline(inputMesh);
-	return outputModel;
-}
-
-function runPipelineAndUpdatePreview() {
-	let outputModel = runPipeline();
-	// call onPreviewUpdate
-    win.webContents.send('previewUpdate', outputModel);
-}
 
 function createWindow() {
 	//process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
@@ -76,6 +23,8 @@ function createWindow() {
 			//frame: false,
 		},
 	});
+
+	pipeline.windowReference = win;
 
 	Menu.setApplicationMenu(null);
 
@@ -103,67 +52,13 @@ app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle("getAllPossibleModifiers", async (event, trackName) => {
-	return Object.keys(modifierPipeline.availableModifiers);
-});
-
-ipcMain.handle("addModifier", async (event, options) => {
-	const { trackName, modifierName } = options;
-
-	if (!modifierPipeline.availableModifiers[modifierName]) {
-		throw new Error(`Modifier type "${modifierName}" is not available`);
-	}
-
-	modifierPipeline.addModifierToTrack(trackName, modifierName);
-
-	runPipelineAndUpdatePreview();
-
-	return modifierPipeline.tracks;
-});
-
-ipcMain.handle("modifierParameterChange", async (event, options) => {
-	// Handle the parameter change logic here
-	const { trackName, modifierId, parameterName, newValue } = options;
-	modifierPipeline.setParameter(trackName, modifierId, parameterName, newValue);
-	
-	runPipelineAndUpdatePreview();
-
-	return true;
-});
-ipcMain.handle("modifierParameterFactorChange", async (event, options) => {
-	// Handle the parameter factor change logic here
-	const { trackName, modifierId, parameterName, factor } = options;
-	modifierPipeline.setParameterFactor(trackName, modifierId, parameterName, factor);
-
-	runPipelineAndUpdatePreview();
-
-	return true;
-});
-
-ipcMain.handle("bindParameterToMidiData", async (event, options) => {
-	// Example options: { trackName: 'Track 1', modifierIndex: 0, parameterName: 'x', midiDataName: 'velocity' }
-	const { trackName, modifierIndex, parameterName, midiDataName } = options;
-	modifierPipeline.bindParameterToMidiData(trackName, modifierIndex, parameterName, midiDataName);
+ipcMain.handle("getAllPossibleNodes", async (event, trackName) => {
+	return pipeline.getActiveNetwork().getAllPossibleNodeTypes();
 });
 
 ipcMain.handle("getPreviewModel", async (event, options) => {
-	let outputModel = runPipeline();
+	let outputModel = pipeline.runPipeline();
 	return outputModel;
-});
-
-ipcMain.handle("getTracks", async (event, options) => {
-	return modifierPipeline.tracks;
-});
-
-ipcMain.handle("getMidiData", async (event, options) => {
-	return midiDataManager.getMidiData();
-});
-
-ipcMain.handle("reorderModifier", async (event, options) => {
-	const { trackName, previousIndex, newIndex } = options;
-	modifierPipeline.reorderModifier(trackName, previousIndex, newIndex);
-	runPipelineAndUpdatePreview();
-	return modifierPipeline.tracks;
 });
 
 ipcMain.handle("saveProject", async (event, options) => {
@@ -180,7 +75,7 @@ ipcMain.handle("saveProject", async (event, options) => {
 		openedProjectPath = filePath;
 	}
 
-	save(openedProjectPath, saveData);
+	pipeline.save(openedProjectPath, saveData);
 });
 
 ipcMain.handle("saveProjectAs", async (event, options) => {
@@ -191,7 +86,7 @@ ipcMain.handle("saveProjectAs", async (event, options) => {
 	});
 
 	if (!canceled && filePath) {
-		save(filePath, saveData);
+		pipeline.save(filePath, saveData);
 	}
 
 	const projectName = path.basename(filePath);
@@ -206,12 +101,51 @@ ipcMain.handle("openProject", async (event, options) => {
 	});
 
 	if (!canceled && filePaths.length > 0) {
-		load(filePaths[0]);
+		pipeline.load(filePaths[0]);
 	}
 
 	const projectName = path.basename(filePaths[0]);
 
 	return canceled ? null : projectName;
+});
+
+// Node network actions
+ipcMain.handle("createNode", async (event, networkIndex, nodeType) => {
+	pipeline.createNodeInActiveNetwork(nodeType);
+	return true;
+});
+
+ipcMain.handle("deleteNode", async (event, networkIndex, nodeId) => {
+	pipeline.deleteNodeFromActiveNetwork(nodeId);
+	return true;
+});
+
+ipcMain.handle("addConnection", async (event, options) => {
+	const { fromNodeId, outputIndex, toNodeId, inputIndex } = options;
+
+	const network = pipeline.getActiveNetwork();
+	network.addConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
+
+	return true;
+});
+
+ipcMain.handle("removeConnection", async (event, options) => {
+	const { fromNodeId, outputIndex, toNodeId, inputIndex } = options;
+
+	const network = pipeline.getActiveNetwork();
+	network.removeConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
+
+	return true;
+});
+
+ipcMain.handle("setActiveNetwork", async (event, networkId) => {
+	pipeline.activateNetwork(networkId);
+	return true;
+});
+
+ipcMain.handle("getNodeNetwork", async (event) => {
+	const network = pipeline.getActiveNetwork();
+	return network;
 });
 
 ipcMain.handle("openFileDialog", async (event, options) => {

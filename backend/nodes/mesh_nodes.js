@@ -1,7 +1,7 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
 const { Mesh } = require('../mesh.js');
 
-class MeshNode {
+class MeshNode extends Node {
 	constructor(name) {
 		const inputs = [];
 		const outputs = [
