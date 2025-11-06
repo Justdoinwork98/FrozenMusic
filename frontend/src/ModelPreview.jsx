@@ -50,7 +50,7 @@ export default function ModelPreview() {
 
 	// Fetch the initial preview model
 	useEffect(() => {
-		window.electronAPI.getPreviewModel().then(setPreviewModel);
+		//window.electronAPI.getPreviewModel().then(setPreviewModel);
 	}, []);
 
 	// Initialize scene once

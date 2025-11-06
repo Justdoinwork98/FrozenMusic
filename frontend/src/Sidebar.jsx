@@ -22,14 +22,6 @@ function Sidebar() {
 		window.electronAPI.onTrackUpdate(setTracks);
 	}, []);
 
-	// Initially load tracks from backend
-	useEffect(() => {
-		(async () => {
-			const initialTracks = await window.electronAPI.getTracks();
-			setTracks(initialTracks);
-		})();
-	}, []);
-
 	return (
 		<div className="sidebar">
 			<h2>Sidebar</h2>
