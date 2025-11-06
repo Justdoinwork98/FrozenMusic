@@ -8,13 +8,44 @@ export default function ModelPreview() {
 	const cameraRef = useRef();
 	const rendererRef = useRef();
 	const modelRef = useRef();       // current preview model
+	const wireframeRef = useRef();
 	const controlsRef = useRef();
 
 	const [previewModel, setPreviewModel] = useState(null);
 
+	// Function to get current camera state
+	const getPreviewCameraState = () => {
+		const camera = cameraRef.current;
+		const controls = controlsRef.current;
+		console.log("Getting camera state", camera.position, controls.target);
+		if (!camera || !controls) return null;
+
+		return {
+			position: camera.position.clone(),
+			target: controls.target.clone(),
+		};
+	};
+
+	const setCameraState = (cameraState) => {
+		const camera = cameraRef.current;
+		const controls = controlsRef.current;
+		console.log("Setting camera state", cameraState);
+		if (!camera || !controls || !cameraState) return;
+
+		camera.position.copy(cameraState.position);
+		controls.target.copy(cameraState.target);
+		controls.update();
+	};
+
+	// Expose camera state to backend
+	useEffect(() => {
+		window.getPreviewCameraState = getPreviewCameraState;
+	}, []);
+
 	// Subscribe to backend updates
 	useEffect(() => {
 		window.electronAPI.onPreviewUpdate(setPreviewModel);
+		window.electronAPI.onCameraStateUpdate(setCameraState);
 	}, []);
 
 	// Fetch the initial preview model
@@ -27,7 +58,7 @@ export default function ModelPreview() {
 		const container = containerRef.current;
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-		const renderer = new THREE.WebGLRenderer({ antialias: true });
+		const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
 		// Make sure the canvas fills and can capture mouse events when resized
 		renderer.domElement.style.width = "100%";
@@ -38,16 +69,22 @@ export default function ModelPreview() {
 
 		container.appendChild(renderer.domElement);
 
+		// Default camera location
+
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.enableDamping = true;   // smoother rotation
 		controls.dampingFactor = 0.05;
 		controls.enableZoom = true;
 		controls.enablePan = true;
+		controls.target.set(10, 0, 0);
+		camera.position.set(-10, 10, 0);
+		controls.update();
 
 		const light = new THREE.DirectionalLight(0xffffff, 1);
 		light.position.set(1, 3, 5);
 		scene.add(light);
 		scene.add(new THREE.AmbientLight(0x404040));
+		scene.background = new THREE.Color( 0xffffff );
 
 		camera.position.z = 3;
 
@@ -56,6 +93,7 @@ export default function ModelPreview() {
 			const { clientWidth, clientHeight } = container;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
+			renderer.setSize(clientWidth, clientHeight);
 		};
 
 		const resizeObserver = new ResizeObserver(resize);
@@ -77,7 +115,7 @@ export default function ModelPreview() {
 		animate();
 
 		return () => {
-			resizeObserver.disconnect();  // TODO still needed?
+			resizeObserver.disconnect();
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
 			container.removeChild(renderer.domElement);
@@ -91,22 +129,23 @@ export default function ModelPreview() {
 
 		// Remove old model if present
 		if (modelRef.current) {
-			for (const previewMesh of modelRef.current) {
-				scene.remove(previewMesh);
-				previewMesh.traverse(obj => {
-					if (obj.geometry) obj.geometry.dispose();
-					if (obj.material) {
-						if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-						else obj.material.dispose();
-					}
-				});
-			}
+			scene.remove(modelRef.current);
+			modelRef.current.traverse(obj => {
+				if (obj.geometry) obj.geometry.dispose();
+				if (obj.material) {
+					if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+					else obj.material.dispose();
+				}
+			});
 			modelRef.current = null;
 		}
 
-		if (!previewModel) return;
+		if (wireframeRef.current) {
+			scene.remove(wireframeRef.current);
+			wireframeRef.current = null;
+		}
 
-		console.log("Updating preview model:", previewModel);
+		if (!previewModel) return;
 
 		// previewModels is an array of { vertices: [], tris: [] }
 		for (const previewMesh of previewModel) {
@@ -130,6 +169,15 @@ export default function ModelPreview() {
 			const mesh = new THREE.Mesh(geometry, material);
 			scene.add(mesh);
 			modelRef.current = mesh;
+
+			// Render wireframe
+			const wireframe = new THREE.WireframeGeometry(geometry);
+			const line = new THREE.LineSegments(wireframe);
+			line.material.depthTest = false; // Render on top
+			line.material.opacity = 0.5;
+			line.material.transparent = true;
+			scene.add(line);
+			wireframeRef.current = line;
 		}
 
 

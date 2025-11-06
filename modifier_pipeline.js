@@ -1,4 +1,5 @@
-const { Mesh, Modifier, Translate } = require('./modifier.js');
+const { Modifier, TranslateModifier, ScaleModifier, RotateModifier, ArrayModifier, SmoothModifier } = require('./modifier.js');
+const { Mesh } = require('./mesh.js');
 
 class Track {
 	constructor(name) {
@@ -13,8 +14,9 @@ class Track {
 	runModifierPipeline(input, midiData) {
 
 		let totalMesh = new Mesh();
+
 		for (const midiNote of midiData) {
-			let mesh = input;
+			let mesh = input.clone();
 
 			for (const modifier of this.modifiers) {
 				mesh = modifier.modify(mesh, midiNote);
@@ -25,19 +27,41 @@ class Track {
 
 		return totalMesh;
 	}
+
+	toJSON() {
+		return {
+			modifiers: this.modifiers.map(modifier => modifier.toJSON()),
+		};
+	}
+
+	static fromJSON(trackName, data) {
+		const track = new Track(trackName);
+		for (const modifierData of data.modifiers) {
+			const modifier = Modifier.fromJSON(modifierData);
+			track.addModifier(modifier);
+		}
+		return track;
+	}
 }
 
 class ModifierPipeline {
 	constructor() {
 		this.tracks = new Map();
 		this.availableModifiers = {
-			'Translate': Translate,
-			// Add other modifiers here
+			'Translate': TranslateModifier,
+			'Scale': ScaleModifier,
+			'Rotate': RotateModifier,
+			'Array': ArrayModifier,
+			'Smooth': SmoothModifier
 		};
 	}
 
-	addTrack(trackName) {
+	addNewTrack(trackName) {
 		this.tracks.set(trackName, new Track(trackName));
+	}
+
+	addTrack(track) {
+		this.tracks.set(track.name, track);
 	}
 
 	addModifierToTrack(trackName, modifierName) {
@@ -56,28 +80,36 @@ class ModifierPipeline {
 		}
 	}
 
-	bindParameterToMidiData(trackName, modifierIndex, parameterName, midiDataName) {
+	setParameter(trackName, modifierId, parameterName, value) {
 		const track = this.tracks.get(trackName);
 		if (!track) {
 			throw new Error(`Track "${trackName}" not found`);
 		}
-		if (modifierIndex < 0 || modifierIndex >= track.modifiers.length) {
-			throw new Error(`Modifier index ${modifierIndex} out of range for track "${trackName}"`);
+		for (const modifier of track.modifiers) {
+			if (modifier.id === modifierId) {
+				modifier.setParameter(parameterName, value);
+				return;
+			}
 		}
-		const modifier = track.modifiers[modifierIndex];
-		modifier.bindParameterToMidiData(parameterName, midiDataName);
+		throw new Error(`Modifier with ID ${modifierId} not found in track "${trackName}"`);
 	}
 
-	setParameterFactor(trackName, modifierIndex, parameterName, factor) {
+	setParameterFactor(trackName, modifierId, parameterName, factor) {
 		const track = this.tracks.get(trackName);
 		if (!track) {
 			throw new Error(`Track "${trackName}" not found`);
 		}
-		if (modifierIndex < 0 || modifierIndex >= track.modifiers.length) {
-			throw new Error(`Modifier index ${modifierIndex} out of range for track "${trackName}"`);
+		for (const modifier of track.modifiers) {
+			if (modifier.id === modifierId) {
+				if (typeof modifier.setParameterFactor === 'function') {
+					modifier.setParameterFactor(parameterName, factor);
+					return;
+				} else {
+					throw new Error(`Modifier with ID ${modifierId} does not support parameter factors`);
+				}
+			}
 		}
-		const modifier = track.modifiers[modifierIndex];
-		modifier.setParameterFactor(parameterName, factor);
+		throw new Error(`Modifier with ID ${modifierId} not found in track "${trackName}"`);
 	}
 
 
@@ -107,6 +139,41 @@ class ModifierPipeline {
 			meshes.push(track.runModifierPipeline(input, sampleMidiData));
 		}
 		return meshes;
+	}
+
+	reorderModifier(trackName, previousIndex, newIndex) {
+		if (!this.tracks.has(trackName)) {
+			throw new Error(`Track "${trackName}" not found`);
+		}
+
+		const track = this.tracks.get(trackName);
+		if (previousIndex < 0 || previousIndex >= track.modifiers.length ||
+			newIndex < 0 || newIndex >= track.modifiers.length) {
+			throw new Error(`Invalid modifier indices for track "${trackName}"`);
+		}
+
+		const [movedModifier] = track.modifiers.splice(previousIndex, 1);
+		track.modifiers.splice(newIndex, 0, movedModifier);
+	}
+
+	toJSON() {
+		const data = {};
+
+		for (const [trackName, track] of this.tracks.entries()) {
+			data[trackName] = track.toJSON();
+		}
+		return data;
+	}
+
+	fromJSON(data) {
+		// Clear existing tracks
+		this.tracks.clear();
+
+		for (const trackName in data) {
+			let track = Track.fromJSON(trackName, data[trackName]);
+			this.addTrack(track);
+		}
+		return this;
 	}
 }
 
