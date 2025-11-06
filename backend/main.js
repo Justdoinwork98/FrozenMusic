@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 
-const { Mesh } = require('./modifier.js');
+const { Mesh } = require('./nodes/modifier.js');
 const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
 const { MidiDataManager } = require('./midi_data_manager.js');
 
@@ -83,7 +83,7 @@ function createWindow() {
 	if (process.env.NODE_ENV === 'development') {
 		// Wait until Vite server is ready
 		win.loadURL('http://localhost:5173');
-		//win.webContents.openDevTools(); // optional
+		win.webContents.openDevTools(); // optional
 	} else {
 		win.loadFile(path.join(__dirname, 'frontend/dist/index.html'));
 	}

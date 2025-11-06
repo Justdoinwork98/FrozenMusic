@@ -1,4 +1,4 @@
-const { Modifier, TranslateModifier, ScaleModifier, RotateModifier, ArrayModifier, SmoothModifier } = require('./modifier.js');
+const { Modifier, TranslateModifier, ScaleModifier, RotateModifier, ArrayModifier, SmoothModifier } = require('./nodes/modifier.js');
 const { Mesh } = require('./mesh.js');
 
 class Track {

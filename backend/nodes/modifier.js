@@ -1,6 +1,7 @@
-const { Mesh } = require('./mesh.js');
+const { Mesh } = require('../mesh.js');
+const { Node } = require('./node.js');
 
-class Modifier {
+class Modifier extends Node {
 
 	constructor() {
 		// TODO this will fail when a project was loaded with existing modifiers (and ids)
