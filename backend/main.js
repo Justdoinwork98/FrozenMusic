@@ -44,8 +44,7 @@ app.whenReady().then(() => {
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
 	});
-	//save();
-	load();
+	pipeline.load("project1.json");
 });
 
 app.on('window-all-closed', () => {
@@ -65,17 +64,17 @@ ipcMain.handle("saveProject", async (event, options) => {
 	const saveData = options;
 
 	// If no project is opened yet, prompt for "Save As"
-	if (!openedProjectPath) {
+	if (!pipeline.openedProjectPath) {
 		const { canceled, filePath } = await dialog.showSaveDialog({
 			filters: [{ name: "JSON Files", extensions: ["json"] }],
 		});
 		if (canceled || !filePath) {
 			return;
 		}
-		openedProjectPath = filePath;
+		pipeline.openedProjectPath = filePath;
 	}
 
-	pipeline.save(openedProjectPath, saveData);
+	pipeline.save(pipeline.openedProjectPath, saveData);
 });
 
 ipcMain.handle("saveProjectAs", async (event, options) => {

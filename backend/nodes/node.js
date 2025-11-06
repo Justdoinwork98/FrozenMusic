@@ -116,26 +116,12 @@ class Node {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}
 
-		// Check that the input and output types match
-		const inputType = this.inputs[inputIndex].type;
-		const outputType = network.nodes.get(fromNodeId).outputs[fromOutputIndex].type;
-		if (inputType !== outputType) {
-			throw new Error(`Type mismatch: cannot connect ${outputType} to ${inputType}`);
-		}
-
 		this.inputs[inputIndex].connect(fromNodeId, fromOutputIndex);
 	}
 
 	connectOutput(outputIndex, toNodeId, toInputIndex) {
 		if (outputIndex < 0 || outputIndex >= this.outputs.length) {
 			throw new Error('Invalid output index: ' + outputIndex);
-		}
-
-		// Check that the output and input types match
-		const outputType = this.outputs[outputIndex].type;
-		const inputType = network.nodes.get(toNodeId).inputs[toInputIndex].type;
-		if (outputType !== inputType) {
-			throw new Error(`Type mismatch: cannot connect ${outputType} to ${inputType}`);
 		}
 
 		this.outputs[outputIndex].connect(toNodeId, toInputIndex);

@@ -14,7 +14,8 @@ class NodeNetwork {
 
 		// Default network: a simple cube to output
 		const cubeNode = new CubeNode();
-		this.outputNode = new OutputNode();
+		const outputNode = new OutputNode();
+		this.outputNodeId = outputNode.id;
 		this.addNode(cubeNode);
 		this.addNode(outputNode);
 		this.addConnection(cubeNode.id, 0, outputNode.id, 0);
@@ -26,7 +27,8 @@ class NodeNetwork {
 
 	runNetwork(midiData) {
 		// Evaluate the output node
-		return this.outputNode.getOutput(this, midiData, 0);
+		const outputNode = this.nodes.get(this.outputNodeId);
+		return outputNode.getOutput(this, midiData, 0);
 	}
 
 	addNode(node) {
@@ -45,7 +47,7 @@ class NodeNetwork {
 
 	removeNode(nodeId) {
 		// Check that it isn't the output node
-		if (nodeId === this.outputNode.id) {
+		if (nodeId === this.outputNodeId) {
 			throw new Error('Cannot delete the output node');
 		}
 
@@ -63,6 +65,14 @@ class NodeNetwork {
 
 		if (!fromNode || !toNode) {
 			throw new Error('Invalid node IDs for connection: ' + fromNodeId + ' to ' + toNodeId);
+		}
+
+		// Check that the output and input types match
+		const fromOutputType = fromNode.outputs[outputIndex].type;
+		const toInputType = toNode.inputs[inputIndex].type;
+
+		if (fromOutputType !== toInputType) {
+			throw new Error(`Type mismatch: cannot connect ${fromOutputType} to ${toInputType}`);
 		}
 
 		fromNode.connectOutput(outputIndex, toNodeId, inputIndex);

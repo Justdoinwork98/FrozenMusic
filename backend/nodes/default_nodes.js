@@ -48,3 +48,8 @@ class MidiInputNode extends Node {
 		throw new Error('Invalid output index for MidiInputNode: ' + outputIndex);
 	}
 }
+
+module.exports = {
+	OutputNode,
+	MidiInputNode,
+};
