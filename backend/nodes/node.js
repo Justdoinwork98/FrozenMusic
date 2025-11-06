@@ -1,7 +1,8 @@
 class InputPoint {
-	constructor(name, type) {
+	constructor(name, type, defaultValue) {
 		this.name = name;
 		this.type = type;
+		this.defaultValue = defaultValue;
 		// What this input is connected to (either null or a nodeId, outputIndex)
 		this.connection = null;
 	}
@@ -71,6 +72,29 @@ class Node {
 		this.id = Node.nextId++;
 	}
 
+	// Find the value of an input by evaluating the connected node
+	getInput(inputIndex) {
+		if (inputIndex < 0 || inputIndex >= this.inputs.length) {
+			throw new Error('Invalid input index: ' + inputIndex);
+		}
+
+		const inputConnection = this.inputs[inputIndex].connection;
+		const inputNode = network.nodes.get(inputConnection.nodeId);
+		const inputValue = inputNode.getOutput(network, inputConnection.outputIndex);
+
+		return inputValue;
+	}
+
+	// Evaluate the node and return the output data for the given output index
+	getOutput(outputIndex) {
+		if (outputIndex < 0 || outputIndex >= this.outputs.length) {
+			throw new Error('Invalid output index: ' + outputIndex);
+		}
+
+		// We want to evaluate the node here and return the output data
+		throw new Error('getOutput() must be implemented by subclass');
+	}
+
 	onNodeDeleted(nodeId) {
 		// Disconnect inputs connected to the deleted node
 		this.inputs.forEach(input => {
@@ -92,12 +116,26 @@ class Node {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}
 
+		// Check that the input and output types match
+		const inputType = this.inputs[inputIndex].type;
+		const outputType = network.nodes.get(fromNodeId).outputs[fromOutputIndex].type;
+		if (inputType !== outputType) {
+			throw new Error(`Type mismatch: cannot connect ${outputType} to ${inputType}`);
+		}
+
 		this.inputs[inputIndex].connect(fromNodeId, fromOutputIndex);
 	}
 
 	connectOutput(outputIndex, toNodeId, toInputIndex) {
 		if (outputIndex < 0 || outputIndex >= this.outputs.length) {
 			throw new Error('Invalid output index: ' + outputIndex);
+		}
+
+		// Check that the output and input types match
+		const outputType = this.outputs[outputIndex].type;
+		const inputType = network.nodes.get(toNodeId).inputs[toInputIndex].type;
+		if (outputType !== inputType) {
+			throw new Error(`Type mismatch: cannot connect ${outputType} to ${inputType}`);
 		}
 
 		this.outputs[outputIndex].connect(toNodeId, toInputIndex);

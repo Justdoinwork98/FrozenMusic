@@ -1,10 +1,11 @@
 const { Mesh } = require('../mesh.js');
-const { Node } = require('./node.js');
+const { Node, InputPoint, OutputPoint } = require('./node.js');
 
 class Modifier extends Node {
 
-	constructor() {
-		// TODO this will fail when a project was loaded with existing modifiers (and ids)
+	constructor(inputs, outputs) {
+		super("Modifier", inputs, outputs);
+
 		this.id = Modifier.prototype.nextId++;
 	}
 
@@ -94,23 +95,44 @@ Modifier.prototype.nextId = 1;
 class TranslateModifier extends Modifier {
 
 	constructor() {
-		super();
+		const inputs = [
+			new InputPoint("Mesh Input", "Mesh", null),
+			new InputPoint("x", "Number", 1),
+			new InputPoint("y", "Number", 0),
+			new InputPoint("z", "Number", 0),
+		];
+		const outputs = [
+			new OutputPoint("Mesh Output", "Mesh"),
+		];
+		super(inputs, outputs);
 
-		// Default parameter values
-		this.parameters = { x: "static", y: "static", z: "static" };
-		this.parameterFactors = { x: 1, y: 1, z: 1 };
-		this.parameterNames = ['x', 'y', 'z'];
 		this.name = "Translate";
 	}
+	
+	// Get the inputs and return the output Mesh
+	getOutput(network, outputIndex) {
+		// TODO do we need to make a clone here?
+		let mesh = this.inputs[0].connection;
+		if (!mesh) {
+			throw new Error('Mesh input is not connected');
+		}
 
-	modify(mesh, midiNote) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
+		}
+
+		const xInputValue = this.getInput(1);
+		const yInputValue = this.getInput(2);
+		const zInputValue = this.getInput(3);
+
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
-				x: v.x + this.getParameter('x', midiNote),
-				y: v.y + this.getParameter('y', midiNote),
-				z: v.z + this.getParameter('z', midiNote),
+				x: v.x + xInputValue,
+				y: v.y + yInputValue,
+				z: v.z + zInputValue,
 			};
 		});
+
 		return mesh;
 	}
 }
