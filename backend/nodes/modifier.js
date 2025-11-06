@@ -9,84 +9,14 @@ class Modifier extends Node {
 		this.id = Modifier.prototype.nextId++;
 	}
 
-	modify(mesh, midiNote) {
-		throw new Error('modify() must be implemented by subclass');
-	}
-
-	getParameter(name, midiData) {
-		if (this.parameters && name in this.parameters) {
-			// Found the parameter
-			// Now it could be just a value or a reference to MIDI data
-			const param = this.parameters[name];
-			if (typeof param === 'string' && midiData && param in midiData) {
-				// It's a reference to MIDI data: look it up
-				return midiData[param] * this.parameterFactors[name];
-			}
-			else {
-				// Just a static value, return the factor
-				return this.parameterFactors[name] ?? 1;
-			}
-		}
-		throw new Error(`Parameter ${name} not found`);
-	}
-
-	setParameter(name, value) {
-		if (this.parameters && name in this.parameters) {
-			this.parameters[name] = value;
-		}
-	}
-
-	getParameters() {
-		return this.parameters;
-	}
-
-	setParameterFactor(name, factor) {
-		if (this.parameters && name in this.parameters) {
-			this.parameterFactors[name] = factor;
-		}
-	}
-
 	toJSON() {
 		return {
 			id: this.id,
 			name: this.name,
-			parameters: this.parameters,
-			parameterFactors: this.parameterFactors,
 		};
 	}
 
 	static fromJSON(data) {
-		let modifier;
-		switch (data.name) {
-			case 'Translate':
-				modifier = new TranslateModifier();
-				break;
-			case 'Scale':
-				modifier = new ScaleModifier();
-				break;
-			case 'Rotate':
-				modifier = new RotateModifier();
-				break;
-			case 'Array':
-				modifier = new ArrayModifier();
-				break;
-			case 'Smooth':
-				modifier = new SmoothModifier();
-				break;
-			// Add other modifiers here
-			default:
-				throw new Error(`Unknown modifier type: ${data.name}`);
-		}
-		modifier.id = data.id;
-		modifier.parameters = data.parameters;
-		modifier.parameterFactors = data.parameterFactors;
-
-		// Make sure that the nextId is always ahead
-		if (modifier.id >= Modifier.prototype.nextId) {
-			Modifier.prototype.nextId = modifier.id + 1;
-		}
-
-		return modifier;
 	}
 }
 
@@ -110,7 +40,7 @@ class TranslateModifier extends Modifier {
 	}
 	
 	// Get the inputs and return the output Mesh
-	getOutput(network, outputIndex) {
+	getOutput(network, midiData, outputIndex) {
 		// TODO do we need to make a clone here?
 		let mesh = this.inputs[0].connection;
 		if (!mesh) {
@@ -121,9 +51,9 @@ class TranslateModifier extends Modifier {
 			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
 		}
 
-		const xInputValue = this.getInput(1);
-		const yInputValue = this.getInput(2);
-		const zInputValue = this.getInput(3);
+		const xInputValue = this.getInput(1, midiData);
+		const yInputValue = this.getInput(2, midiData);
+		const zInputValue = this.getInput(3, midiData);
 
 		mesh.vertices = mesh.vertices.map(v => {
 			return {

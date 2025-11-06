@@ -80,8 +80,8 @@
       "output": "release"
     },
     "files": [
-      "main.js",
-      "preload.js",
+      "backend/main.js",
+      "backend/preload.js",
       "frontend/dist/**/*",
       "package.json"
     ],

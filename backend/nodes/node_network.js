@@ -1,6 +1,17 @@
+const { Node, InputPoint, OutputPoint } = require('./node.js');
+const { CubeNode, SphereNode } = require('./mesh_nodes.js');
+const { OutputNode } = require('./default_nodes.js');
+
 class NodeNetwork {
 	constructor() {
 		this.nodes = new Map(); // id -> Node
+
+		// Default network: a simple cube to output
+		const cubeNode = new CubeNode();
+		const outputNode = new OutputNode();
+		this.addNode(cubeNode);
+		this.addNode(outputNode);
+		this.addConnection(cubeNode.id, 0, outputNode.id, 0);
 	}
 
 	addNode(node) {
