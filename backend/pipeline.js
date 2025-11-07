@@ -126,6 +126,8 @@ class Pipeline {
 			meshes.push(totalMesh);
 		});
 
+		this.savedMeshes = meshes;
+
 		return meshes;
 	}
 
@@ -212,6 +214,74 @@ class Pipeline {
 			this.sendNetworkToFrontend();
 			this.sendNumberOfTracksToFrontend();
 		});
+	}
+
+	exportMeshAsObj(filePath) {
+		if (!this.savedMeshes) {
+			throw new Error('No mesh to export. Run the pipeline first.');
+		}
+
+		let objData = '';
+
+		console.log(this.savedMeshes);
+
+		this.savedMeshes.forEach((mesh, meshIndex) => {
+			objData += `o Mesh${meshIndex}\n`;
+
+			// Write vertices
+			mesh.vertices.forEach(v => {
+				objData += `v ${v.x} ${v.y} ${v.z}\n`;
+			});
+
+			// Write faces (assuming mesh.faces contains vertex indices arrays [v0,v1,v2])
+			mesh.tris.forEach(t => {
+				objData += `f ${t.v1+1} ${t.v2+1} ${t.v3+1}\n`; // OBJ uses 1-based indexing
+			});
+		});
+
+		fs.writeFileSync(filePath, objData, 'utf8');
+		console.log(`Saved OBJ to ${filePath}`);
+	}
+
+	exportMeshAsStl(filePath) {
+		if (!this.savedMeshes) {
+			throw new Error('No mesh to export. Run the pipeline first.');
+		}
+
+		let stlData = 'solid mesh\n';
+
+		this.savedMeshes.forEach((mesh, meshIndex) => {
+			mesh.tris.forEach(t => {
+				const v0 = mesh.vertices[t.v1];
+				const v1 = mesh.vertices[t.v2];
+				const v2 = mesh.vertices[t.v3];
+
+				if (!v0 || !v1 || !v2) {
+					//console.warn(`Skipping invalid triangle:`, t, " for mesh with num vertices ", mesh.vertices.length);
+					return;
+				}
+
+				// Compute normal (cross product)
+				const ux = v1.x - v0.x, uy = v1.y - v0.y, uz = v1.z - v0.z;
+				const vx = v2.x - v0.x, vy = v2.y - v0.y, vz = v2.z - v0.z;
+				const nx = uy*vz - uz*vy;
+				const ny = uz*vx - ux*vz;
+				const nz = ux*vy - uy*vx;
+
+				stlData += `facet normal ${nx} ${ny} ${nz}\n`;
+				stlData += `  outer loop\n`;
+				stlData += `    vertex ${v0.x} ${v0.y} ${v0.z}\n`;
+				stlData += `    vertex ${v1.x} ${v1.y} ${v1.z}\n`;
+				stlData += `    vertex ${v2.x} ${v2.y} ${v2.z}\n`;
+				stlData += `  endloop\n`;
+				stlData += `endfacet\n`;
+			});
+		});
+
+		stlData += 'endsolid mesh\n';
+
+		fs.writeFileSync(filePath, stlData, 'utf8');
+		console.log(`Saved STL to ${filePath}`);
 	}
 }
 

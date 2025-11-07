@@ -18,7 +18,7 @@ function createWindow() {
 			preload: path.join(__dirname, "preload.js"),
 			contextIsolation: true,
 			nodeIntegration: false,
-			//autoHideMenuBar: true,
+			autoHideMenuBar: true,
 			// Remove the default window around our app: TODO doesnt work
 			//frame: false,
 		},
@@ -32,7 +32,7 @@ function createWindow() {
 	if (process.env.NODE_ENV === 'development') {
 		// Wait until Vite server is ready
 		win.loadURL('http://localhost:5173');
-		win.webContents.openDevTools(); // optional
+		//win.webContents.openDevTools(); // optional
 	} else {
 		win.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
 	}
@@ -178,6 +178,34 @@ ipcMain.on("updateNodeInputDefault", async (event, options) => {
 
 ipcMain.on("requestNumberOfTracks", async (event, options) => {
 	pipeline.sendNumberOfTracksToFrontend();
+});
+
+ipcMain.on("saveMeshAsObj", async (event) => {
+	const dialogOptions = {
+		properties: ["saveFile"],
+		filters: [{ name: "OBJ Files", extensions: ["obj"] }],
+		title: "Export Mesh As OBJ",
+	};
+
+	const { canceled, filePath } = await dialog.showSaveDialog(dialogOptions);
+
+	if (!canceled && filePath) {
+		pipeline.exportMeshAsObj(filePath);
+	}
+});
+
+ipcMain.on("saveMeshAsStl", async (event) => {
+	const dialogOptions = {
+		properties: ["saveFile"],
+		filters: [{ name: "STL Files", extensions: ["stl"] }],
+		title: "Export Mesh As STL",
+	};
+
+	const { canceled, filePath } = await dialog.showSaveDialog(dialogOptions);
+
+	if (!canceled && filePath) {
+		pipeline.exportMeshAsStl(filePath);
+	}
 });
 
 ipcMain.on("openMidiFile", async (event) => {

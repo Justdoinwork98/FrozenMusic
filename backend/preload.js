@@ -28,4 +28,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	addConnection: (options) => ipcRenderer.send("addConnection", options),
 	removeConnection: (options) => ipcRenderer.send("removeConnection", options),
 	updateNodeInputDefault: (options) => ipcRenderer.send("updateNodeInputDefault", options),
+
+	saveMeshAsObj: () => ipcRenderer.send("saveMeshAsObj"),
+	saveMeshAsStl: () => ipcRenderer.send("saveMeshAsStl"),
 });
