@@ -18,7 +18,7 @@ export default function ModelPreview() {
 	const getPreviewCameraState = () => {
 		const camera = cameraRef.current;
 		const controls = controlsRef.current;
-		console.log("Getting camera state", camera.position, controls.target);
+		
 		if (!camera || !controls) return null;
 
 		return {
@@ -26,6 +26,12 @@ export default function ModelPreview() {
 			target: controls.target.clone(),
 		};
 	};
+
+	// Expose camera state to backend
+	useEffect(() => {
+		window.getPreviewCameraState = getPreviewCameraState;
+	}, []);
+
 
 	const setCameraState = (cameraState) => {
 		const camera = cameraRef.current;
@@ -37,12 +43,6 @@ export default function ModelPreview() {
 		controls.target.copy(cameraState.target);
 		controls.update();
 	};
-
-	// Expose camera state to backend
-	useEffect(() => {
-		window.getPreviewCameraState = getPreviewCameraState;
-	}, []);
-
 	// Subscribe to backend updates
 	useEffect(() => {
 		window.electronAPI.onPreviewUpdate(setPreviewModel);

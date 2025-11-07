@@ -25,7 +25,7 @@ export const NetworkContextMenu = ({ x, y, onClose, onSelect, possibleNodes }) =
 					className="menu-item"
 					onMouseEnter={() => setSubmenu(category)}
 				>
-					{category} ▶
+					{category}
 					{submenu === category && (
 						<div className="submenu" onMouseLeave={() => setSubmenu(null)}>
 							{possibleNodes[category].map((nodeType) => (

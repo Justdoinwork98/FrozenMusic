@@ -57,7 +57,7 @@ class Pipeline {
 		const node = network.nodes.get(nodeId);
 		if (node) {
 			node.setPosition(x, y);
-			this.sendNetworkToFrontend();
+			//this.sendNetworkToFrontend();
 		}
 	}
 
@@ -84,6 +84,7 @@ class Pipeline {
 	deleteNodeFromActiveNetwork(nodeId) {
 		const network = this.getActiveNetwork();
 		network.removeNode(nodeId);
+		this.sendNetworkToFrontend();
 	}
 
 	runPipeline() {

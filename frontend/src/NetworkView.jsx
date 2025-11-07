@@ -20,7 +20,7 @@ function getHandleId(isOutput, index) {
 	return (isOutput ? 'out-' : 'in-') + index;
 }
 
-const ModifierNode = ({ data, id }) => {
+const ModifierNode = ({ data, id, selected }) => {
 	// Extract metadata
 	const inputs = data.inputs || [];
 	const outputs = data.outputs || [];
@@ -33,7 +33,7 @@ const ModifierNode = ({ data, id }) => {
 
 	return (
 		<div
-			className="node modifier-node"
+			className={`node modifier-node ${selected ? "selected" : ""}`}
 			style={{
 				height: nodeHeight,
 			}}
@@ -84,7 +84,7 @@ const ModifierNode = ({ data, id }) => {
 							type="target"
 							position={Position.Left}
 							id={getHandleId(false, i)}
-							style={{ background: "#fc9", left: -12 }}
+							style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff": "#fc9", left: -12 }}
 						/>
 						<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
@@ -122,6 +122,7 @@ export default function NetworkView() {
 	const { project } = useReactFlow(); // Project client coordinates to node pane coordinates
 
 	const [menu, setMenu] = useState(null);
+	const [selectedNode, setSelectedNode] = useState(null);
 
 	const [possibleNodes, setPossibleNodes] = useState({});
 
@@ -147,6 +148,18 @@ export default function NetworkView() {
 		e.preventDefault();
 		setMenuPos({ x: e.clientX, y: e.clientY });
 	};
+
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			if (event.key === 'Delete' && selectedNode) {
+				deleteNode(selectedNode.id);
+				setSelectedNode(null);
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [selectedNode]);
 
 	const handleSelect = (nodeType) => {
 		setMenuPos(null);
@@ -220,7 +233,10 @@ export default function NetworkView() {
 		window.electronAPI.requestPossibleNodes();
 	}, []);
 
-	const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+	const onPaneClick = useCallback(() => {
+		setMenu(null);
+		setSelectedNode(null);
+	}, [setMenu]);
 
 	const deleteNode = (id) => {
 		setMenu(null);
@@ -271,6 +287,7 @@ export default function NetworkView() {
 			
 			<ReactFlow
 				onNodeDragStop={onNodeDragStop}
+				onNodeClick={(event, node) => setSelectedNode(node)}
 				onPaneClick={onPaneClick}
 				ref={ref}
 				nodes={nodes}

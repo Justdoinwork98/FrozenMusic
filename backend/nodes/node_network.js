@@ -79,7 +79,7 @@ class NodeNetwork {
 			this.isConnected = true;
 			return output;
 		} catch (e) {
-			console.log("Error during network run:", e);
+			//console.log("Error during network run:", e);
 			this.isConnected = false;
 			return null;
 		}
