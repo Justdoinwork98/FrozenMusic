@@ -4,6 +4,11 @@ const MidiParser = require('midi-parser-js');
 class MidiDataManager {
 	constructor() {
 		this.midiData = null;
+		this.loadedMidiFile = null;
+	}
+
+	getCurrentMidiFilePath() {
+		return this.loadedMidiFile;
 	}
 
 	setMidiData(midiData) {
@@ -19,11 +24,15 @@ class MidiDataManager {
 	}
 
 	readMidiFile(filePath) {
+		this.loadedMidiFile = filePath;
+
 		fs.readFile(filePath, 'base64', (err, data) => {
 			if (err) {
 				console.error('Error reading MIDI file:', err);
 				return;
 			}
+
+			console.log('MIDI file read successfully:', filePath);
 
 			// Parse the base64 string into a JavaScript object
 			const midiData = MidiParser.parse(data);

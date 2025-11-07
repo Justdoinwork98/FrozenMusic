@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import './App.css';
 import ModelPreview from './ModelPreview.jsx';
 import Timeline from './Timeline.jsx';
+import NetworkView from './NetworkView.jsx';
 import Sidebar from './Sidebar.jsx';
 import Toolbar from "./Toolbar";
+import { ReactFlowProvider } from "reactflow";
 
 function App() {
 	return (
@@ -12,7 +14,9 @@ function App() {
 			<Toolbar />
 			<Sidebar className="sidebar" />
 			<ModelPreview className="preview" />
-			<Timeline className="timeline" />
+			<ReactFlowProvider>
+            <NetworkView className="networkview" />
+			</ReactFlowProvider>
 		</div>
 	);
 }

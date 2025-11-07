@@ -1,154 +1,136 @@
-const { Mesh } = require('./mesh.js');
+const { Mesh } = require('../mesh.js');
+const { Node, InputPoint, OutputPoint } = require('./node.js');
 
-class Modifier {
+class Modifier extends Node {
 
-	constructor() {
-		// TODO this will fail when a project was loaded with existing modifiers (and ids)
-		this.id = Modifier.prototype.nextId++;
-	}
-
-	modify(mesh, midiNote) {
-		throw new Error('modify() must be implemented by subclass');
-	}
-
-	getParameter(name, midiData) {
-		if (this.parameters && name in this.parameters) {
-			// Found the parameter
-			// Now it could be just a value or a reference to MIDI data
-			const param = this.parameters[name];
-			if (typeof param === 'string' && midiData && param in midiData) {
-				// It's a reference to MIDI data: look it up
-				return midiData[param] * this.parameterFactors[name];
-			}
-			else {
-				// Just a static value, return the factor
-				return this.parameterFactors[name] ?? 1;
-			}
-		}
-		throw new Error(`Parameter ${name} not found`);
-	}
-
-	setParameter(name, value) {
-		if (this.parameters && name in this.parameters) {
-			this.parameters[name] = value;
-		}
-	}
-
-	getParameters() {
-		return this.parameters;
-	}
-
-	setParameterFactor(name, factor) {
-		if (this.parameters && name in this.parameters) {
-			this.parameterFactors[name] = factor;
-		}
-	}
-
-	toJSON() {
-		return {
-			id: this.id,
-			name: this.name,
-			parameters: this.parameters,
-			parameterFactors: this.parameterFactors,
-		};
+	constructor(inputs, outputs) {
+		super("Modifier", inputs, outputs);
 	}
 
 	static fromJSON(data) {
-		let modifier;
-		switch (data.name) {
-			case 'Translate':
-				modifier = new TranslateModifier();
-				break;
-			case 'Scale':
-				modifier = new ScaleModifier();
-				break;
-			case 'Rotate':
-				modifier = new RotateModifier();
-				break;
-			case 'Array':
-				modifier = new ArrayModifier();
-				break;
-			case 'Smooth':
-				modifier = new SmoothModifier();
-				break;
-			// Add other modifiers here
-			default:
-				throw new Error(`Unknown modifier type: ${data.name}`);
-		}
-		modifier.id = data.id;
-		modifier.parameters = data.parameters;
-		modifier.parameterFactors = data.parameterFactors;
-
-		// Make sure that the nextId is always ahead
-		if (modifier.id >= Modifier.prototype.nextId) {
-			Modifier.prototype.nextId = modifier.id + 1;
-		}
-
-		return modifier;
 	}
 }
-
-Modifier.prototype.nextId = 1;
 
 class TranslateModifier extends Modifier {
 
 	constructor() {
-		super();
+		const inputs = [
+			new InputPoint("Mesh Input", "Mesh", null),
+			new InputPoint("x", "Number", 1),
+			new InputPoint("y", "Number", 0),
+			new InputPoint("z", "Number", 0),
+		];
+		const outputs = [
+			new OutputPoint("Mesh Output", "Mesh"),
+		];
+		super(inputs, outputs);
 
-		// Default parameter values
-		this.parameters = { x: "static", y: "static", z: "static" };
-		this.parameterFactors = { x: 1, y: 1, z: 1 };
-		this.parameterNames = ['x', 'y', 'z'];
 		this.name = "Translate";
 	}
+	
+	// Get the inputs and return the output Mesh
+	getOutput(network, midiData, outputIndex) {
+		// TODO do we need to make a clone here?
+		let mesh = this.getInput(network, 0, midiData);
+		if (!mesh) {
+			throw new Error('Mesh input is not connected');
+		}
 
-	modify(mesh, midiNote) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
+		}
+
+		const xInputValue = this.getInput(network, 1, midiData);
+		const yInputValue = this.getInput(network, 2, midiData);
+		const zInputValue = this.getInput(network, 3, midiData);
+
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
-				x: v.x + this.getParameter('x', midiNote),
-				y: v.y + this.getParameter('y', midiNote),
-				z: v.z + this.getParameter('z', midiNote),
+				x: v.x + xInputValue,
+				y: v.y + yInputValue,
+				z: v.z + zInputValue,
 			};
 		});
+
 		return mesh;
 	}
 }
 
 class ScaleModifier extends Modifier {
 	constructor() {
-		super();
-		this.parameters = { x: "static", y: "static", z: "static" };
-		this.parameterFactors = { x: 1, y: 1, z: 1 };
-		this.parameterNames = ['x', 'y', 'z'];
+		const inputs = [
+			new InputPoint("Mesh Input", "Mesh", null),
+			new InputPoint("x", "Number", 1),
+			new InputPoint("y", "Number", 1),
+			new InputPoint("z", "Number", 1),
+		];
+		const outputs = [
+			new OutputPoint("Mesh Output", "Mesh"),
+		];
+		super(inputs, outputs);
+
 		this.name = "Scale";
 	}
+	
+	// Get the inputs and return the output Mesh
+	getOutput(network, midiData, outputIndex) {
+		// TODO do we need to make a clone here?
+		let mesh = this.getInput(network, 0, midiData);
+		if (!mesh) {
+			throw new Error('Mesh input is not connected');
+		}
 
-	modify(mesh, midiNote) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
+		}
+
+		const xInputValue = this.getInput(network, 1, midiData);
+		const yInputValue = this.getInput(network, 2, midiData);
+		const zInputValue = this.getInput(network, 3, midiData);
+
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
-				x: v.x * this.getParameter('x', midiNote),
-				y: v.y * this.getParameter('y', midiNote),
-				z: v.z * this.getParameter('z', midiNote),
+				x: v.x * xInputValue,
+				y: v.y * yInputValue,
+				z: v.z * zInputValue,
 			};
 		});
+
 		return mesh;
 	}
 }
 
 class RotateModifier extends Modifier {
 	constructor() {
-		super();
-		this.parameters = { angle: "static", axis_x: "static", axis_y: "static", axis_z: "static"};
-		this.parameterFactors = { angle: 1, axis_x: 1, axis_y: 0, axis_z: 0 };
-		this.parameterNames = ['angle', 'x', 'y', 'z'];
+		const inputs = [
+			new InputPoint("Mesh Input", "Mesh", null),
+			new InputPoint("Angle", "Number", 0),
+			new InputPoint("Axis x", "Number", 1),
+			new InputPoint("Axis y", "Number", 0),
+			new InputPoint("Axis z", "Number", 0),
+		];
+		const outputs = [
+			new OutputPoint("Mesh Output", "Mesh"),
+		];
+		super(inputs, outputs);
+
 		this.name = "Rotate";
 	}
 
-	modify(mesh, midiNote) {
-		const angleRad = this.getParameter('angle', midiNote) * (Math.PI / 180);
-		const axisX = this.getParameter('axis_x', midiNote);
-		const axisY = this.getParameter('axis_y', midiNote);
-		const axisZ = this.getParameter('axis_z', midiNote);
+	getOutput(network, midiData, outputIndex) {
+		// TODO do we need to make a clone here?
+		let mesh = this.getInput(network, 0, midiData);
+		if (!mesh) {
+			throw new Error('Mesh input is not connected');
+		}
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for RotateModifier: ' + outputIndex);
+		}
+		const angleDeg = this.getInput(network, 1, midiData);
+		const angleRad = angleDeg * Math.PI / 180;
+		const axisX = this.getInput(network, 2, midiData);
+		const axisY = this.getInput(network, 3, midiData);
+		const axisZ = this.getInput(network, 4, midiData);
 
 		// Normalize rotation axis
 		const length = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
@@ -196,21 +178,36 @@ class RotateModifier extends Modifier {
 class ArrayModifier extends Modifier {
 
 	constructor() {
-		super();
+		const inputs = [
+			new InputPoint("Mesh Input", "Mesh", null),
+			new InputPoint("Count", "Number", 2),
+			new InputPoint("Distance", "Number", 1.5),
+			new InputPoint("Axis X", "Number", 0),
+			new InputPoint("Axis Y", "Number", 1),
+			new InputPoint("Axis Z", "Number", 0),
+		];
+		const outputs = [
+			new OutputPoint("Mesh Output", "Mesh"),
+		];
+		super(inputs, outputs);
 
-		// Default parameter values
-		this.parameters = { count: "static", distance: "static", "axis_x": "static", "axis_y": "static", "axis_z": "static" };
-		this.parameterFactors = { count: 2, distance: 1, axis_x: 1, axis_y: 0, axis_z: 0 };
-		this.parameterNames = ['count', 'distance', 'x', 'y', 'z'];
 		this.name = "Array";
 	}
 
-	modify(mesh, midiNote) {
-		const count = Math.max(1, Math.floor(this.getParameter('count', midiNote)));
-		const distance = this.getParameter('distance', midiNote);
-		const axisX = this.getParameter('axis_x', midiNote);
-		const axisY = this.getParameter('axis_y', midiNote);
-		const axisZ = this.getParameter('axis_z', midiNote);
+	getOutput(network, midiData, outputIndex) {
+		// TODO do we need to make a clone here?
+		let mesh = this.getInput(network, 0, midiData);
+		if (!mesh) {
+			throw new Error('Mesh input is not connected');
+		}
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for ArrayModifier: ' + outputIndex);
+		}
+		const count = Math.floor(this.getInput(network, 1, midiData));
+		const distance = this.getInput(network, 2, midiData);
+		const axisX = this.getInput(network, 3, midiData);
+		const axisY = this.getInput(network, 4, midiData);
+		const axisZ = this.getInput(network, 5, midiData);
 
 		for (let i = 0; i < count; i++) {
 			const offsetX = axisX * distance * i;

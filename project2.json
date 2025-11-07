@@ -1,0 +1,105 @@
+{
+  "midiFile": "C:\\Git\\FrozenMusic\\midi.mid",
+  "networks": [
+    {
+      "nodes": [
+        {
+          "id": 1,
+          "name": "Cube",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 2,
+                  "inputIndex": 0
+                },
+                {
+                  "nodeId": 5,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -200,
+            "y": 0
+          }
+        },
+        {
+          "id": 2,
+          "name": "Output",
+          "inputs": [
+            {
+              "name": "Final Mesh",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 1,
+                "outputIndex": 0
+              }
+            }
+          ],
+          "outputs": [],
+          "position": {
+            "x": 433.2578947368421,
+            "y": 23.621052631578948
+          }
+        },
+        {
+          "id": 5,
+          "name": "Translate",
+          "inputs": [
+            {
+              "name": "Mesh Input",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 1,
+                "outputIndex": 0
+              }
+            },
+            {
+              "name": "x",
+              "type": "Number",
+              "connection": null
+            },
+            {
+              "name": "y",
+              "type": "Number",
+              "connection": null
+            },
+            {
+              "name": "z",
+              "type": "Number",
+              "connection": null
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": []
+            }
+          ],
+          "position": {
+            "x": 134.95131578947354,
+            "y": 149.94736842105263
+          }
+        }
+      ]
+    }
+  ],
+  "camera": {
+    "position": {
+      "x": -9.999999999999996,
+      "y": 10.000000000000004,
+      "z": 2.9999999999999987
+    },
+    "target": {
+      "x": 10,
+      "y": 0,
+      "z": 0
+    }
+  }
+}
