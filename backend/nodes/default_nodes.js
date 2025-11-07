@@ -37,7 +37,7 @@ class MidiInputNode extends Node {
 		const outputPoint = this.outputs[outputIndex];
 		switch (outputIndex) {
 			case 0: // Note Number
-				return midiData.noteNumber;
+				return midiData.note;
 			case 1: // Velocity
 				return midiData.velocity;
 			case 2: // Duration

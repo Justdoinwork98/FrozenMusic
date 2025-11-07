@@ -13,7 +13,7 @@
               "type": "Mesh",
               "connections": [
                 {
-                  "nodeId": 3,
+                  "nodeId": 6,
                   "inputIndex": 0
                 }
               ]
@@ -39,8 +39,8 @@
           ],
           "outputs": [],
           "position": {
-            "x": 433.2578947368421,
-            "y": 23.621052631578948
+            "x": 741.8078947368421,
+            "y": 16.239473684210523
           }
         },
         {
@@ -51,7 +51,7 @@
               "name": "Mesh Input",
               "type": "Mesh",
               "connection": {
-                "nodeId": 1,
+                "nodeId": 6,
                 "outputIndex": 0
               },
               "defaultValue": null
@@ -68,7 +68,10 @@
             {
               "name": "y",
               "type": "Number",
-              "connection": null,
+              "connection": {
+                "nodeId": 4,
+                "outputIndex": 0
+              },
               "defaultValue": 0
             },
             {
@@ -91,8 +94,8 @@
             }
           ],
           "position": {
-            "x": 109.8539473684209,
-            "y": 123.3736842105263
+            "x": 402.1644736842105,
+            "y": 161.4626315789473
           }
         },
         {
@@ -103,7 +106,12 @@
             {
               "name": "Note Number",
               "type": "Number",
-              "connections": []
+              "connections": [
+                {
+                  "nodeId": 3,
+                  "inputIndex": 2
+                }
+              ]
             },
             {
               "name": "Velocity",
@@ -122,13 +130,17 @@
                 {
                   "nodeId": 5,
                   "inputIndex": 0
+                },
+                {
+                  "nodeId": 6,
+                  "inputIndex": 1
                 }
               ]
             }
           ],
           "position": {
-            "x": -431.0401268134916,
-            "y": 163.36318978169294
+            "x": -662.8217057608599,
+            "y": 402.5263476764296
           }
         },
         {
@@ -164,8 +176,66 @@
             }
           ],
           "position": {
-            "x": -195.8568908510442,
-            "y": 182.26832282673675
+            "x": -296.2463645352547,
+            "y": 117.31042808989466
+          }
+        },
+        {
+          "id": 6,
+          "name": "Rotate",
+          "inputs": [
+            {
+              "name": "Mesh Input",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 1,
+                "outputIndex": 0
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "Angle",
+              "type": "Number",
+              "connection": {
+                "nodeId": 4,
+                "outputIndex": 3
+              },
+              "defaultValue": "0"
+            },
+            {
+              "name": "Axis x",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 1
+            },
+            {
+              "name": "Axis y",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            },
+            {
+              "name": "Axis z",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 3,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": 98.78157894736842,
+            "y": 43.65263157894731
           }
         }
       ]
@@ -173,14 +243,14 @@
   ],
   "camera": {
     "position": {
-      "x": 40.43057497397457,
-      "y": 4.866349488185488,
-      "z": 7.703957258852892
+      "x": 54.895864607748294,
+      "y": 61.57680970740217,
+      "z": 17.283984193597465
     },
     "target": {
-      "x": 44.899174158941946,
-      "y": -1.9205564676935656,
-      "z": 1.1297151187185432
+      "x": 136.29754568757676,
+      "y": 47.56401973591445,
+      "z": -18.758159166679118
     }
   }
 }
