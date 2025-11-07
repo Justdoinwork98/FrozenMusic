@@ -42,6 +42,16 @@ class Pipeline {
 		this.windowReference.webContents.send('nodeNetworkUpdate', this.getActiveNetwork().getNodeList());
 	}
 
+	updateNodeInputDefaultInActiveNetwork(nodeId, inputIndex, value) {
+		const network = this.getActiveNetwork();
+		const node = network.nodes.get(nodeId);
+		if (node && inputIndex >= 0 && inputIndex < node.inputs.length) {
+			node.inputs[inputIndex].defaultValue = value;
+			this.sendNetworkToFrontend();
+			this.runPipelineAndUpdatePreview();
+		}
+	}
+
 	moveNodeInActiveNetwork(nodeId, x, y) {
 		const network = this.getActiveNetwork();
 		const node = network.nodes.get(nodeId);
@@ -89,6 +99,11 @@ class Pipeline {
 			// Loop through each MIDI note
 			for (const midiNote of this.midiDataManager.getMidiData().track[1].notes) {
 				const mesh = network.runNetwork(midiNote);
+				if (mesh == null) {
+					//console.log("Network " + i + " did not produce a mesh for MIDI note ", midiNote);
+					continue;
+				}
+
 				totalMesh.add(mesh);
 			}
 			meshes.push(totalMesh);
@@ -99,6 +114,10 @@ class Pipeline {
 
 	runPipelineAndUpdatePreview() {
 		const outputMesh = this.runPipeline();
+		if (outputMesh == null) {
+			// Something was not connected properly
+			return;
+		}
 		console.log("Updating preview model in frontend.");
 		this.windowReference.webContents.send('previewModelUpdate', outputMesh);
 	}

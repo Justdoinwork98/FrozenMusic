@@ -30,6 +30,7 @@ class InputPoint {
 			name: this.name,
 			type: this.type,
 			connection: this.connection,
+			defaultValue: this.defaultValue,
 		};
 		return data;
 	}
@@ -37,6 +38,7 @@ class InputPoint {
 	static fromJSON(data) {
 		const inputPoint = new InputPoint(data.name, data.type);
 		inputPoint.connection = data.connection;
+		inputPoint.defaultValue = data.defaultValue;
 		return inputPoint;
 	}
 }
@@ -94,6 +96,12 @@ class Node {
 		}
 
 		const inputConnection = this.inputs[inputIndex].connection;
+
+		if (inputConnection == null) {
+			// Return default value if not connected
+			return this.inputs[inputIndex].defaultValue;
+		}
+
 		const inputNode = network.nodes.get(inputConnection.nodeId);
 		const inputValue = inputNode.getOutput(network, midiData, inputConnection.outputIndex);
 

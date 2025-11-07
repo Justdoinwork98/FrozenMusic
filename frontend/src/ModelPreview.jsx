@@ -9,6 +9,7 @@ export default function ModelPreview() {
 	const rendererRef = useRef();
 	const modelRef = useRef();       // current preview model
 	const wireframeRef = useRef();
+	const drawWireframe = false;
 	const controlsRef = useRef();
 
 	const [previewModel, setPreviewModel] = useState(null);
@@ -171,13 +172,15 @@ export default function ModelPreview() {
 			modelRef.current = mesh;
 
 			// Render wireframe
-			const wireframe = new THREE.WireframeGeometry(geometry);
-			const line = new THREE.LineSegments(wireframe);
-			line.material.depthTest = false; // Render on top
-			line.material.opacity = 0.5;
-			line.material.transparent = true;
-			scene.add(line);
-			wireframeRef.current = line;
+			if (drawWireframe) {
+				const wireframe = new THREE.WireframeGeometry(geometry);
+				const line = new THREE.LineSegments(wireframe);
+				line.material.depthTest = false; // Render on top
+				line.material.opacity = 0.5;
+				line.material.transparent = true;
+				scene.add(line);
+				wireframeRef.current = line;
+			}
 		}
 
 

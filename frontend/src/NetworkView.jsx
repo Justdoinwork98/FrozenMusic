@@ -94,6 +94,16 @@ const ModifierNode = ({ data, id }) => {
 								type="text"
 								placeholder="value"
 								className ="input-constant-field"
+								defaultValue={input.defaultValue}
+								onChange={(e) => {
+									// Send the updated constant value to the backend
+									const options = {
+										nodeId: parseInt(id),
+										inputIndex: i,
+										value: e.target.value,
+									};
+									window.electronAPI.updateNodeInputDefault(options);
+								}}
 							/>
 						)}
 					</div>
@@ -139,7 +149,6 @@ export default function NetworkView() {
 	};
 
 	const handleSelect = (nodeType) => {
-		console.log("Create node:", nodeType);
 		setMenuPos(null);
     	const position = project({ x: menuPos.x, y: menuPos.y });
 		const options = {
@@ -154,7 +163,6 @@ export default function NetworkView() {
 	useEffect(() => {
 		window.electronAPI.onNodeNetworkUpdate((nodeList) => {
 			// Update nodes and edges based on data from backend
-			console.log("Received node network update from backend:", nodeList);
 
 			let updatedNodes = [];
 			let updatedEdges = [];
@@ -169,7 +177,8 @@ export default function NetworkView() {
 						inputs: node.inputs.map((input, index) => ({
 							name: input.name,
 							isConnected: input.connection != null,
-							isInputRequired: input.defaultValue == null // If there's no default value, input is required
+							isInputRequired: input.defaultValue == null, // If there's no default value, input is required
+							defaultValue: input.defaultValue,
 						})),
 						outputs: node.outputs.map((output) => output.name),
 					}

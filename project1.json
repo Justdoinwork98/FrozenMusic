@@ -13,11 +13,7 @@
               "type": "Mesh",
               "connections": [
                 {
-                  "nodeId": 2,
-                  "inputIndex": 0
-                },
-                {
-                  "nodeId": 5,
+                  "nodeId": 3,
                   "inputIndex": 0
                 }
               ]
@@ -36,7 +32,7 @@
               "name": "Final Mesh",
               "type": "Mesh",
               "connection": {
-                "nodeId": 1,
+                "nodeId": 3,
                 "outputIndex": 0
               }
             }
@@ -48,7 +44,7 @@
           }
         },
         {
-          "id": 5,
+          "id": 3,
           "name": "Translate",
           "inputs": [
             {
@@ -57,34 +53,119 @@
               "connection": {
                 "nodeId": 1,
                 "outputIndex": 0
-              }
+              },
+              "defaultValue": null
             },
             {
               "name": "x",
               "type": "Number",
-              "connection": null
+              "connection": {
+                "nodeId": 5,
+                "outputIndex": 0
+              },
+              "defaultValue": 1
             },
             {
               "name": "y",
               "type": "Number",
-              "connection": null
+              "connection": null,
+              "defaultValue": 0
             },
             {
               "name": "z",
               "type": "Number",
-              "connection": null
+              "connection": null,
+              "defaultValue": 0
             }
           ],
           "outputs": [
             {
               "name": "Mesh Output",
               "type": "Mesh",
-              "connections": []
+              "connections": [
+                {
+                  "nodeId": 2,
+                  "inputIndex": 0
+                }
+              ]
             }
           ],
           "position": {
-            "x": 95.09078947368414,
-            "y": 160.28157894736844
+            "x": 109.8539473684209,
+            "y": 123.3736842105263
+          }
+        },
+        {
+          "id": 4,
+          "name": "MIDI data",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "Note Number",
+              "type": "Number",
+              "connections": []
+            },
+            {
+              "name": "Velocity",
+              "type": "Number",
+              "connections": []
+            },
+            {
+              "name": "Duration",
+              "type": "Number",
+              "connections": []
+            },
+            {
+              "name": "Start Time",
+              "type": "Number",
+              "connections": [
+                {
+                  "nodeId": 5,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -431.0401268134916,
+            "y": 163.36318978169294
+          }
+        },
+        {
+          "id": 5,
+          "name": "Multiply",
+          "inputs": [
+            {
+              "name": "Value 1",
+              "type": "Number",
+              "connection": {
+                "nodeId": 4,
+                "outputIndex": 3
+              },
+              "defaultValue": 1
+            },
+            {
+              "name": "Value 2",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": "0.02"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Result",
+              "type": "Number",
+              "connections": [
+                {
+                  "nodeId": 3,
+                  "inputIndex": 1
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -195.8568908510442,
+            "y": 182.26832282673675
           }
         }
       ]
@@ -92,14 +173,14 @@
   ],
   "camera": {
     "position": {
-      "x": -9.999999999999996,
-      "y": 10.000000000000004,
-      "z": 2.9999999999999987
+      "x": 40.43057497397457,
+      "y": 4.866349488185488,
+      "z": 7.703957258852892
     },
     "target": {
-      "x": 10,
-      "y": 0,
-      "z": 0
+      "x": 44.899174158941946,
+      "y": -1.9205564676935656,
+      "z": 1.1297151187185432
     }
   }
 }

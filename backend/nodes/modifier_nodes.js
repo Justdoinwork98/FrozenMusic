@@ -31,7 +31,7 @@ class TranslateModifier extends Modifier {
 	// Get the inputs and return the output Mesh
 	getOutput(network, midiData, outputIndex) {
 		// TODO do we need to make a clone here?
-		let mesh = this.inputs[0].connection;
+		let mesh = this.getInput(network, 0, midiData);
 		if (!mesh) {
 			throw new Error('Mesh input is not connected');
 		}

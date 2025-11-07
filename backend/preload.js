@@ -25,4 +25,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	deleteNode: (nodeId) => ipcRenderer.invoke("deleteNode", nodeId),
 	addConnection: (options) => ipcRenderer.invoke("addConnection", options),
 	removeConnection: (options) => ipcRenderer.invoke("removeConnection", options),
+	updateNodeInputDefault: (options) => ipcRenderer.invoke("updateNodeInputDefault", options),
 });

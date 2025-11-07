@@ -34,7 +34,7 @@ function createWindow() {
 		win.loadURL('http://localhost:5173');
 		win.webContents.openDevTools(); // optional
 	} else {
-		win.loadFile(path.join(__dirname, 'frontend/dist/index.html'));
+		win.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
 	}
 
 }
@@ -113,11 +113,13 @@ ipcMain.handle("openProject", async (event, options) => {
 ipcMain.handle("createNode", async (event, options) => {
 	const { x, y, nodeType } = options;
 	pipeline.createNodeInActiveNetwork(nodeType, x, y);
+	pipeline.runPipelineAndUpdatePreview();
 	return true;
 });
 
 ipcMain.handle("deleteNode", async (event, nodeId) => {
 	pipeline.deleteNodeFromActiveNetwork(nodeId);
+	pipeline.runPipelineAndUpdatePreview();
 	return true;
 });
 
@@ -134,6 +136,7 @@ ipcMain.handle("addConnection", async (event, options) => {
 	network.addConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
 
 	pipeline.sendNetworkToFrontend();
+	pipeline.runPipelineAndUpdatePreview();
 
 	return true;
 });
@@ -145,6 +148,7 @@ ipcMain.handle("removeConnection", async (event, options) => {
 	network.removeConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
 
 	pipeline.sendNetworkToFrontend();
+	pipeline.runPipelineAndUpdatePreview();
 
 	return true;
 });
@@ -161,6 +165,14 @@ ipcMain.handle("requestNodeNetwork", async (event) => {
 
 ipcMain.handle("requestProjectName", async (event) => {
 	pipeline.sendProjectNameToFrontend();
+	return true;
+});
+
+ipcMain.handle("updateNodeInputDefault", async (event, options) => {
+	const { nodeId, inputIndex, value } = options;
+
+	pipeline.updateNodeInputDefaultInActiveNetwork(nodeId, inputIndex, value);
+
 	return true;
 });
 

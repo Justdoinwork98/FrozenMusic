@@ -26,11 +26,11 @@ class MidiInputNode extends Node {
 			new OutputPoint("Duration", "Number"),
 			new OutputPoint("Start Time", "Number"),
 		];
-		super("MIDI Input", inputs, outputs);
+		super("MIDI data", inputs, outputs);
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		if (!midiData || !midiData.track || midiData.track.length === 0) {
+		if (!midiData) {
 			throw new Error('No MIDI data available');
 		}
 

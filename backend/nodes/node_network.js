@@ -1,6 +1,6 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
 const { CubeNode, SphereNode } = require('./mesh_nodes.js');
-const { OutputNode } = require('./default_nodes.js');
+const { OutputNode, MidiInputNode } = require('./default_nodes.js');
 const { TranslateModifier, ScaleModifier, RotateModifier } = require('./modifier_nodes.js');
 const { AddNode, SubtractNode, MultiplyNode, DivideNode } = require('./math_nodes.js');
 
@@ -22,11 +22,13 @@ const NODE_TYPES = {
 	"Subtract": SubtractNode,
 	"Multiply": MultiplyNode,
 	"Divide": DivideNode,
+	"MIDI data": MidiInputNode
 };
 
 class NodeNetwork {
 	constructor() {
 		this.nodes = new Map(); // id -> Node
+		this.isConnected = false;
 	}
 
 	makeDefaultNetwork() {
@@ -65,8 +67,22 @@ class NodeNetwork {
 
 	runNetwork(midiData) {
 		// Evaluate the output node
-		const outputNode = this.nodes.get(this.outputNodeId);
-		return outputNode.getOutput(this, midiData, 0);
+		try {
+			const outputNode = this.nodes.get(this.outputNodeId);
+			const output = outputNode.getOutput(this, midiData, 0);
+			for (const v of output.vertices) {
+				if (isNaN(v.x) || isNaN(v.y) || isNaN(v.z)) {
+					console.log("Invalid vertex data detected:", v);
+					//throw new Error('Output mesh contains invalid vertex data (NaN)');
+				}
+			}
+			this.isConnected = true;
+			return output;
+		} catch (e) {
+			console.log("Error during network run:", e);
+			this.isConnected = false;
+			return null;
+		}
 	}
 
 	addNode(node) {
