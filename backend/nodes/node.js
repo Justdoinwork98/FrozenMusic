@@ -88,7 +88,7 @@ class Node {
 	}
 
 	// Find the value of an input by evaluating the connected node
-	getInput(inputIndex, midiData) {
+	getInput(network, inputIndex, midiData) {
 		if (inputIndex < 0 || inputIndex >= this.inputs.length) {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}

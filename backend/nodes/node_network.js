@@ -43,6 +43,22 @@ class NodeNetwork {
 		this.addConnection(cubeNode.id, 0, outputNode.id, 0);
 	}
 
+	verifyOrAddOutputNode() {
+		// Ensure there is an output node
+		let hasOutputNode = false;
+		this.nodes.forEach(node => {
+			if (node instanceof OutputNode) {
+				hasOutputNode = true;
+				this.outputNodeId = node.id;
+			}
+		});
+		if (!hasOutputNode) {
+			const newOutputNode = new OutputNode();
+			this.addNode(newOutputNode);
+			this.outputNodeId = newOutputNode.id;
+		}
+	}
+
 	getNodeList() {
 		return Array.from(this.nodes.values());
 	}

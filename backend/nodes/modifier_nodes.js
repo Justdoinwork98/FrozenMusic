@@ -40,9 +40,9 @@ class TranslateModifier extends Modifier {
 			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
 		}
 
-		const xInputValue = this.getInput(1, midiData);
-		const yInputValue = this.getInput(2, midiData);
-		const zInputValue = this.getInput(3, midiData);
+		const xInputValue = this.getInput(network, 1, midiData);
+		const yInputValue = this.getInput(network, 2, midiData);
+		const zInputValue = this.getInput(network, 3, midiData);
 
 		mesh.vertices = mesh.vertices.map(v => {
 			return {

@@ -10,7 +10,7 @@ class OutputNode extends Node {
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		const meshInput = this.getInput(0, midiData);
+		const meshInput = this.getInput(network, 0, midiData);
 
 		// TODO empty check
 		return meshInput;

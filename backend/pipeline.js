@@ -81,22 +81,25 @@ class Pipeline {
 			return null;
 		}
 
-		let totalMesh = new Mesh();
+		let meshes = [];
 
 		// Run the node network to produce the final mesh
 		this.networks.forEach((network, i) => {
+			let totalMesh = new Mesh();
 			// Loop through each MIDI note
-			for (const midiNote of this.midiDataManager.getMidiData().track[i].notes) {
+			for (const midiNote of this.midiDataManager.getMidiData().track[1].notes) {
 				const mesh = network.runNetwork(midiNote);
 				totalMesh.add(mesh);
 			}
+			meshes.push(totalMesh);
 		});
 
-		return totalMesh;
+		return meshes;
 	}
 
 	runPipelineAndUpdatePreview() {
 		const outputMesh = this.runPipeline();
+		console.log("Updating preview model in frontend.");
 		this.windowReference.webContents.send('previewModelUpdate', outputMesh);
 	}
 
@@ -136,6 +139,8 @@ class Pipeline {
 
 		// Read the networks from the file
 		this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
+		// Ensure that each network has an output node
+		this.networks.forEach(network => network.verifyOrAddOutputNode());
 
 		// Set opened project path
 		this.openedProjectPath = filePath;

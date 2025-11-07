@@ -8,8 +8,8 @@ class AddNode extends Node {
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		const val1 = this.getInput(0, midiData);
-		const val2 = this.getInput(1, midiData);
+		const val1 = this.getInput(network, 0, midiData);
+		const val2 = this.getInput(network, 1, midiData);
 		return val1 + val2;
 	}
 }
@@ -22,8 +22,8 @@ class SubtractNode extends Node {
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		const val1 = this.getInput(0, midiData);
-		const val2 = this.getInput(1, midiData);
+		const val1 = this.getInput(network, 0, midiData);
+		const val2 = this.getInput(network, 1, midiData);
 		return val1 - val2;
 	}
 }
@@ -36,8 +36,8 @@ class MultiplyNode extends Node {
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		const val1 = this.getInput(0, midiData);
-		const val2 = this.getInput(1, midiData);
+		const val1 = this.getInput(network, 0, midiData);
+		const val2 = this.getInput(network, 1, midiData);
 		return val1 * val2;
 	}
 }
@@ -50,8 +50,8 @@ class DivideNode extends Node {
 	}
 
 	getOutput(network, midiData, outputIndex) {
-		const val1 = this.getInput(0, midiData);
-		const val2 = this.getInput(1, midiData);
+		const val1 = this.getInput(network, 0, midiData);
+		const val2 = this.getInput(network, 1, midiData);
 		return val1 / val2;
 	}
 }

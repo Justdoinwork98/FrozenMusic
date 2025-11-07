@@ -56,9 +56,9 @@ ipcMain.handle("requestPossibleNodes", async (event) => {
 	return true;
 });
 
-ipcMain.handle("getPreviewModel", async (event, options) => {
-	let outputModel = pipeline.runPipeline();
-	return outputModel;
+ipcMain.handle("requestPreviewModel", async (event) => {
+	pipeline.runPipelineAndUpdatePreview();
+	return true;
 });
 
 ipcMain.handle("saveProject", async (event, options) => {
