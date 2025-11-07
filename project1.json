@@ -4,6 +4,58 @@
     {
       "nodes": [
         {
+          "id": 8,
+          "name": "Cube",
+          "inputs": [
+            {
+              "name": "Subdivision level",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 9,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -200,
+            "y": 0
+          }
+        },
+        {
+          "id": 9,
+          "name": "Output",
+          "inputs": [
+            {
+              "name": "Final Mesh",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 8,
+                "outputIndex": 0
+              },
+              "defaultValue": null
+            }
+          ],
+          "outputs": [],
+          "position": {
+            "x": 200,
+            "y": 0
+          }
+        }
+      ]
+    },
+    {
+      "nodes": [
+        {
           "id": 2,
           "name": "Output",
           "inputs": [
@@ -19,7 +71,7 @@
           "outputs": [],
           "position": {
             "x": 741.8078947368421,
-            "y": 16.239473684210523
+            "y": 14.723757117700117
           }
         },
         {
@@ -73,8 +125,8 @@
             }
           ],
           "position": {
-            "x": 411.0223684210524,
-            "y": 320.3810526315789
+            "x": 391.0223684210524,
+            "y": 290.3810526315789
           }
         },
         {
@@ -213,8 +265,8 @@
             }
           ],
           "position": {
-            "x": 141.5947368421052,
-            "y": -22.781578947368487
+            "x": 147.6576031081468,
+            "y": -22.02372066411328
           }
         },
         {
@@ -243,6 +295,110 @@
           "position": {
             "x": -161.68579697670873,
             "y": -35.099824270266716
+          }
+        }
+      ]
+    },
+    {
+      "nodes": [
+        {
+          "id": 10,
+          "name": "Cube",
+          "inputs": [
+            {
+              "name": "Subdivision level",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 11,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -200,
+            "y": 0
+          }
+        },
+        {
+          "id": 11,
+          "name": "Output",
+          "inputs": [
+            {
+              "name": "Final Mesh",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 10,
+                "outputIndex": 0
+              },
+              "defaultValue": null
+            }
+          ],
+          "outputs": [],
+          "position": {
+            "x": 200,
+            "y": 0
+          }
+        }
+      ]
+    },
+    {
+      "nodes": [
+        {
+          "id": 12,
+          "name": "Cube",
+          "inputs": [
+            {
+              "name": "Subdivision level",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 13,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -200,
+            "y": 0
+          }
+        },
+        {
+          "id": 13,
+          "name": "Output",
+          "inputs": [
+            {
+              "name": "Final Mesh",
+              "type": "Mesh",
+              "connection": {
+                "nodeId": 12,
+                "outputIndex": 0
+              },
+              "defaultValue": null
+            }
+          ],
+          "outputs": [],
+          "position": {
+            "x": 200,
+            "y": 0
           }
         }
       ]

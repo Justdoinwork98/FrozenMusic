@@ -5,6 +5,7 @@ class Modifier extends Node {
 
 	constructor(inputs, outputs) {
 		super("Modifier", inputs, outputs);
+		this.nodeClass = 'modifier';
 	}
 
 	static fromJSON(data) {

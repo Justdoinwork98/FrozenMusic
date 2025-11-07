@@ -8,8 +8,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	onNodeNetworkUpdate: (callback) => ipcRenderer.on('nodeNetworkUpdate', (_, data) => callback(data)),
 	onPossibleNodesUpdate: (callback) => ipcRenderer.on('possibleNodesUpdate', (_, data) => callback(data)),
 	onProjectNameUpdate: (callback) => ipcRenderer.on('projectNameUpdate', (_, data) => callback(data)),
+	onNumberOfTracksUpdate: (callback) => ipcRenderer.on('numberOfTracksUpdate', (_, data) => callback(data)),
 
-	openMidiFile: () => ipcRenderer.invoke("openMidiFile", ),
+	openMidiFile: () => ipcRenderer.send("openMidiFile"),
 	requestPreviewModel: () => ipcRenderer.send("requestPreviewModel"),
 	saveProject: (options) => ipcRenderer.send("saveProject", options),
 	openProject: () => ipcRenderer.send("openProject"),
@@ -17,6 +18,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	requestNodeNetwork: () => ipcRenderer.send("requestNodeNetwork"),
 	requestPossibleNodes: () => ipcRenderer.send("requestPossibleNodes"),
 	requestProjectName: () => ipcRenderer.send("requestProjectName"),
+	requestNumberOfTracks: () => ipcRenderer.send("requestNumberOfTracks"),
 
 	// Node network actions
 	setActiveNetwork: (networkId) => ipcRenderer.send("setActiveNetwork", networkId),

@@ -176,17 +176,17 @@ ipcMain.on("updateNodeInputDefault", async (event, options) => {
 	return true;
 });
 
-ipcMain.handle("openMidiFile", async (event, options) => {
+ipcMain.on("requestNumberOfTracks", async (event, options) => {
+	pipeline.sendNumberOfTracksToFrontend();
+});
+
+ipcMain.on("openMidiFile", async (event) => {
 
 	const dialogOptions = {
 		properties: ["openFile"],
+		filters: [{ name: "MIDI Files", extensions: ["mid", "midi"] }],
+		title: "Open MIDI File",
 	};
-	if (options && Array.isArray(options.filters)) {
-		dialogOptions.filters = options.filters;
-	}
-	if (options && typeof options.title === "string") {
-		dialogOptions.title = options.title;
-	}
 
 	const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
 

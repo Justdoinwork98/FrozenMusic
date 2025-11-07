@@ -14,6 +14,21 @@ class Pipeline {
 		this.windowReference = null;
 	}
 
+	sendNumberOfTracksToFrontend() {
+		if (!this.windowReference) {
+			throw new Error('No window reference set for Pipeline');
+		}
+
+		const numTracks = this.midiDataManager.hasMidiData() ?
+			this.midiDataManager.getMidiData().track.length :
+			0;
+
+		console.log("Sending number of tracks to frontend:", numTracks);
+		console.log(this.midiDataManager.getMidiData());
+
+		this.windowReference.webContents.send('numberOfTracksUpdate', numTracks);
+	}
+
 	sendProjectNameToFrontend() {
 		if (!this.windowReference) {
 			throw new Error('No window reference set for Pipeline');
@@ -67,6 +82,7 @@ class Pipeline {
 		}
 
 		this.activeNetworkIndex = index;
+		this.sendNetworkToFrontend();
 	}
 
 	getActiveNetwork() {
@@ -98,7 +114,7 @@ class Pipeline {
 		this.networks.forEach((network, i) => {
 			let totalMesh = new Mesh();
 			// Loop through each MIDI note
-			for (const midiNote of this.midiDataManager.getMidiData().track[1].notes) {
+			for (const midiNote of this.midiDataManager.getMidiData().track[i].notes) {
 				const mesh = network.runNetwork(midiNote);
 				if (mesh == null) {
 					//console.log("Network " + i + " did not produce a mesh for MIDI note ", midiNote);
@@ -155,26 +171,35 @@ class Pipeline {
 
 		// Load MIDI file if present
 		if (data.midiFile) {
-			this.midiDataManager.readMidiFile(data.midiFile);
+			this.midiDataManager.readMidiFile(data.midiFile, () => {
+				// Read the networks from the file
+				this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
+				// Ensure that each network has an output node
+				this.networks.forEach(network => network.verifyOrAddOutputNode());
+
+				// Add or remove networks to match number of tracks
+				const numTracks = this.midiDataManager.getMidiData().track.length;
+				while (this.networks.length < numTracks) {
+					const newNetwork = new NodeNetwork();
+					newNetwork.makeDefaultNetwork();
+					this.networks.push(newNetwork);
+				}
+
+				// Set opened project path
+				this.openedProjectPath = filePath;
+
+				// If there is camera data, send it to the frontend
+				if (data.camera) {
+					this.windowReference.webContents.send('cameraStateUpdate', data.camera);
+				}
+
+				// Send the new data to the frontend
+				this.runPipelineAndUpdatePreview();
+				this.sendNetworkToFrontend();
+				this.sendProjectNameToFrontend();
+				this.sendNumberOfTracksToFrontend();;
+			});
 		}
-
-		// Read the networks from the file
-		this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
-		// Ensure that each network has an output node
-		this.networks.forEach(network => network.verifyOrAddOutputNode());
-
-		// Set opened project path
-		this.openedProjectPath = filePath;
-
-		// If there is camera data, send it to the frontend
-		if (data.camera) {
-			this.windowReference.webContents.send('cameraStateUpdate', data.camera);
-		}
-
-		// Send the new data to the frontend
-		this.runPipelineAndUpdatePreview();
-		this.sendNetworkToFrontend();
-		this.sendProjectNameToFrontend();
 	}
 
 	openMidiFile(filePath) {
@@ -185,6 +210,7 @@ class Pipeline {
 
 			this.runPipelineAndUpdatePreview();
 			this.sendNetworkToFrontend();
+			this.sendNumberOfTracksToFrontend();
 		});
 	}
 }

@@ -130,15 +130,17 @@ export default function ModelPreview() {
 
 		// Remove old model if present
 		if (modelRef.current) {
-			scene.remove(modelRef.current);
-			modelRef.current.traverse(obj => {
-				if (obj.geometry) obj.geometry.dispose();
-				if (obj.material) {
-					if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-					else obj.material.dispose();
-				}
-			});
-			modelRef.current = null;
+			for (const model of modelRef.current) {
+				scene.remove(model);
+				model.traverse(obj => {
+					if (obj.geometry) obj.geometry.dispose();
+					if (obj.material) {
+						if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+						else obj.material.dispose();
+					}
+				});
+			}
+			modelRef.current = [];
 		}
 
 		if (wireframeRef.current) {
@@ -149,6 +151,7 @@ export default function ModelPreview() {
 		if (!previewModel) return;
 
 		// previewModels is an array of { vertices: [], tris: [] }
+		modelRef.current = [];
 		for (const previewMesh of previewModel) {
 			const geometry = new THREE.BufferGeometry();
 			const vertices = new Float32Array(previewMesh.vertices.length * 3);
@@ -169,7 +172,7 @@ export default function ModelPreview() {
 			const material = new THREE.MeshStandardMaterial({ color: 0x0077ff, side: THREE.DoubleSide });
 			const mesh = new THREE.Mesh(geometry, material);
 			scene.add(mesh);
-			modelRef.current = mesh;
+			modelRef.current.push(mesh);
 
 			// Render wireframe
 			if (drawWireframe) {

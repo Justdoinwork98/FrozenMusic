@@ -10,6 +10,7 @@ class MeshNode extends Node {
 			new OutputPoint("Mesh Output", "Mesh"),
 		];
 		super(name, inputs, outputs);
+		this.nodeClass = 'geometry';
 	}
 }
 
