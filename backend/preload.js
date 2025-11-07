@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	onCameraStateUpdate: (callback) => ipcRenderer.on('cameraStateUpdate', (_, data) => callback(data)),
 	onNodeNetworkUpdate: (callback) => ipcRenderer.on('nodeNetworkUpdate', (_, data) => callback(data)),
 	onPossibleNodesUpdate: (callback) => ipcRenderer.on('possibleNodesUpdate', (_, data) => callback(data)),
+	onProjectNameUpdate: (callback) => ipcRenderer.on('projectNameUpdate', (_, data) => callback(data)),
 
 	openFileDialog: (options) => ipcRenderer.invoke("openFileDialog", options),
 	getPreviewModel: () => ipcRenderer.invoke("getPreviewModel"),
@@ -15,12 +16,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	saveProjectAs: (options) => ipcRenderer.invoke("saveProjectAs", options),
 	requestNodeNetwork: () => ipcRenderer.invoke("requestNodeNetwork"),
 	requestPossibleNodes: () => ipcRenderer.invoke("requestPossibleNodes"),
+	requestProjectName: () => ipcRenderer.invoke("requestProjectName"),
 
 	// Node network actions
 	setActiveNetwork: (networkId) => ipcRenderer.invoke("setActiveNetwork", networkId),
 	createNode: (options) => ipcRenderer.invoke("createNode", options),
 	moveNode: (nodeId, x, y) => ipcRenderer.invoke("moveNode", { nodeId, x, y }),
 	deleteNode: (nodeId) => ipcRenderer.invoke("deleteNode", nodeId),
-	addConnection: (fromNodeId, outputIndex, toNodeId, inputIndex) => ipcRenderer.invoke("addConnection", { fromNodeId, outputIndex, toNodeId, inputIndex }),
-	removeConnection: (fromNodeId, outputIndex, toNodeId, inputIndex) => ipcRenderer.invoke("removeConnection", { fromNodeId, outputIndex, toNodeId, inputIndex }),
+	addConnection: (options) => ipcRenderer.invoke("addConnection", options),
+	removeConnection: (options) => ipcRenderer.invoke("removeConnection", options),
 });

@@ -27,6 +27,10 @@ const NODE_TYPES = {
 class NodeNetwork {
 	constructor() {
 		this.nodes = new Map(); // id -> Node
+	}
+
+	makeDefaultNetwork() {
+		this.nodes.clear();
 
 		// Default network: a simple cube to output
 		const cubeNode = new CubeNode();
@@ -50,6 +54,7 @@ class NodeNetwork {
 	}
 
 	addNode(node) {
+		console.log("Adding node to network with id " + node.id);
 		this.nodes.set(node.id, node);
 	}
 
@@ -93,6 +98,13 @@ class NodeNetwork {
 			throw new Error(`Type mismatch: cannot connect ${fromOutputType} to ${toInputType}`);
 		}
 
+		// Disconnect previous connections to the input since it can only have one
+		if (toNode.inputs[inputIndex].connection) {
+			const prevConnection = toNode.inputs[inputIndex].connection;
+			this.nodes.get(prevConnection.nodeId).disconnectOutput(prevConnection.outputIndex, toNodeId, inputIndex);
+			toNode.disconnectInput(inputIndex);
+		}
+
 		fromNode.connectOutput(outputIndex, toNodeId, inputIndex);
 		toNode.connectInput(inputIndex, fromNodeId, outputIndex);
 	}
@@ -119,7 +131,7 @@ class NodeNetwork {
 	static fromJSON(data) {
 		const network = new NodeNetwork();
 		data.nodes.forEach(nodeData => {
-			const node = Node.fromJSON(nodeData);
+			const node = Node.fromJSON(nodeData, NODE_TYPES);
 			network.addNode(node);
 		});
 		return network;

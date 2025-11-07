@@ -126,10 +126,6 @@ export default function NetworkView() {
 	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-	const onConnect = useCallback(
-		(params) => setEdges((eds) => addEdge(params, eds)),
-		[setEdges]
-	);
 	const [menuPos, setMenuPos] = useState(null);
 
 	// Handle a node being moved
@@ -158,6 +154,7 @@ export default function NetworkView() {
 	useEffect(() => {
 		window.electronAPI.onNodeNetworkUpdate((nodeList) => {
 			// Update nodes and edges based on data from backend
+			console.log("Received node network update from backend:", nodeList);
 
 			let updatedNodes = [];
 			let updatedEdges = [];
@@ -204,7 +201,6 @@ export default function NetworkView() {
 	// Subscribe to possible nodes update from backend
 	useEffect(() => {
 		window.electronAPI.onPossibleNodesUpdate((possibleNodes) => {
-			console.log("Received possible nodes update:", possibleNodes);
 			setPossibleNodes(possibleNodes);
 		});
 	}, []);
@@ -221,6 +217,33 @@ export default function NetworkView() {
 		setMenu(null);
 		window.electronAPI.deleteNode(parseInt(id));
 	};
+
+	// Handle edge changes
+	const onConnect = useCallback(
+		(params) => {
+			const options = {
+				fromNodeId: parseInt(params.source),
+				outputIndex: parseInt(params.sourceHandle.split('-')[1]),
+				toNodeId: parseInt(params.target),
+				inputIndex: parseInt(params.targetHandle.split('-')[1]),
+			}
+			window.electronAPI.addConnection(options);
+		},
+		[setEdges]
+	);
+
+	const onEdgesDelete = useCallback((deletedEdges) => {
+		deletedEdges.forEach((edge) => {
+			console.log('Disconnected:', edge);
+			const options = {
+				fromNodeId: parseInt(edge.source),
+				outputIndex: parseInt(edge.sourceHandle.split('-')[1]),
+				toNodeId: parseInt(edge.target),
+				inputIndex: parseInt(edge.targetHandle.split('-')[1]),
+			}
+			window.electronAPI.removeConnection(options);
+		});
+	}, []);
 
 
 
@@ -247,6 +270,7 @@ export default function NetworkView() {
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				onConnect={onConnect}
+				onEdgesDelete={onEdgesDelete}
 				fitView
 			>
 				<Controls />

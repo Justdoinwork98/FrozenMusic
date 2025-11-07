@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Toolbar.css";
 
 export default function Toolbar() {
@@ -31,13 +31,19 @@ export default function Toolbar() {
 	}
 
 	const onOpen = () => {
-		window.electronAPI.openProject().then((projectName) => {
-			if (projectName) {
-				setProjectName(projectName);
-			}
-		});
+		window.electronAPI.openProject();
 		closeMenus();
 	}
+
+	// Subscribe to project name updates from the backend
+	useEffect(() => {
+		window.electronAPI.onProjectNameUpdate((name) => {
+			setProjectName(name);
+		});
+		
+		// Request the current project name on mount
+		window.electronAPI.requestProjectName();
+	}, []);
 
 	return (
 		<div className="toolbar" onMouseLeave={closeMenus}>

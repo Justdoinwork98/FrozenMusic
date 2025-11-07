@@ -65,7 +65,7 @@ ipcMain.handle("saveProject", async (event, options) => {
 	const saveData = options;
 
 	// If no project is opened yet, prompt for "Save As"
-	if (!pipeline.openedProjectPath) {
+	if (pipeline.openedProjectPath == null) {
 		const { canceled, filePath } = await dialog.showSaveDialog({
 			filters: [{ name: "JSON Files", extensions: ["json"] }],
 		});
@@ -133,6 +133,8 @@ ipcMain.handle("addConnection", async (event, options) => {
 	const network = pipeline.getActiveNetwork();
 	network.addConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
 
+	pipeline.sendNetworkToFrontend();
+
 	return true;
 });
 
@@ -141,6 +143,8 @@ ipcMain.handle("removeConnection", async (event, options) => {
 
 	const network = pipeline.getActiveNetwork();
 	network.removeConnection(fromNodeId, outputIndex, toNodeId, inputIndex);
+
+	pipeline.sendNetworkToFrontend();
 
 	return true;
 });
@@ -151,7 +155,12 @@ ipcMain.handle("setActiveNetwork", async (event, networkId) => {
 });
 
 ipcMain.handle("requestNodeNetwork", async (event) => {
-	const network = pipeline.sendNetworkToFrontend();
+	pipeline.sendNetworkToFrontend();
+	return true;
+});
+
+ipcMain.handle("requestProjectName", async (event) => {
+	pipeline.sendProjectNameToFrontend();
 	return true;
 });
 

@@ -150,7 +150,7 @@ class Node {
 		this.outputs[outputIndex].disconnect(toNodeId, toInputIndex);
 	}
 
-	disconnectInput(inputIndex, fromNodeId, fromOutputIndex) {
+	disconnectInput(inputIndex) {
 		if (inputIndex < 0 || inputIndex >= this.inputs.length) {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}
@@ -168,10 +168,16 @@ class Node {
 		};
 	}
 
-	static fromJSON(data) {
+	static fromJSON(data, nodeTypes) {
 		const inputs = data.inputs.map(inputData => InputPoint.fromJSON(inputData));
 		const outputs = data.outputs.map(outputData => OutputPoint.fromJSON(outputData));
-		const node = new Node(data.name, inputs, outputs);
+		const NodeClass = nodeTypes[data.name];
+		if (!NodeClass) {
+			throw new Error('Unknown node type: ' + data.name);
+		}
+		const node = new NodeClass(data.name);
+		node.inputs = inputs;
+		node.outputs = outputs;
 		node.id = data.id;
 		if (data.position) {
 			node.position = data.position;

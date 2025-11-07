@@ -14,6 +14,16 @@ class Pipeline {
 		this.windowReference = null;
 	}
 
+	sendProjectNameToFrontend() {
+		if (!this.windowReference) {
+			throw new Error('No window reference set for Pipeline');
+		}
+		const projectName = this.openedProjectPath ?
+			this.openedProjectPath.split(/[\\/]/).pop() :
+			"Untitled Project";
+		this.windowReference.webContents.send('projectNameUpdate', projectName);
+	}
+
 	sendPossibleNodesToFrontend() {
 		if (!this.windowReference) {
 			throw new Error('No window reference set for Pipeline');
@@ -24,6 +34,9 @@ class Pipeline {
 	sendNetworkToFrontend() {
 		if (!this.windowReference) {
 			throw new Error('No window reference set for Pipeline');
+		}
+		if (!this.getActiveNetwork()) {
+			return
 		}
 		console.log("Sending node network update to frontend.");
 		this.windowReference.webContents.send('nodeNetworkUpdate', this.getActiveNetwork().getNodeList());
@@ -98,9 +111,14 @@ class Pipeline {
 			...saveData,
 		};
 
+		// If the file path is different, update the project name in the frontend
+		if (filePath != this.openedProjectPath) {
+			this.openedProjectPath = filePath;
+			this.sendProjectNameToFrontend();
+		}
+
 		// Save data to file
 		fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-		this.openedProjectPath = filePath;
 	}
 
 	load(filePath) {
@@ -130,8 +148,7 @@ class Pipeline {
 		// Send the new data to the frontend
 		this.runPipelineAndUpdatePreview();
 		this.sendNetworkToFrontend();
-
-		this.save(filePath);
+		this.sendProjectNameToFrontend();
 	}
 }
 

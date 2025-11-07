@@ -5,22 +5,11 @@ class Modifier extends Node {
 
 	constructor(inputs, outputs) {
 		super("Modifier", inputs, outputs);
-
-		this.id = Modifier.prototype.nextId++;
-	}
-
-	toJSON() {
-		return {
-			id: this.id,
-			name: this.name,
-		};
 	}
 
 	static fromJSON(data) {
 	}
 }
-
-Modifier.prototype.nextId = 1;
 
 class TranslateModifier extends Modifier {
 
