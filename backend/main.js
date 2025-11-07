@@ -51,8 +51,9 @@ app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle("getAllPossibleNodes", async (event, trackName) => {
-	return pipeline.getActiveNetwork().getAllPossibleNodeTypes();
+ipcMain.handle("requestPossibleNodes", async (event) => {
+	pipeline.sendPossibleNodesToFrontend();
+	return true;
 });
 
 ipcMain.handle("getPreviewModel", async (event, options) => {
@@ -109,13 +110,20 @@ ipcMain.handle("openProject", async (event, options) => {
 });
 
 // Node network actions
-ipcMain.handle("createNode", async (event, networkIndex, nodeType) => {
-	pipeline.createNodeInActiveNetwork(nodeType);
+ipcMain.handle("createNode", async (event, options) => {
+	const { x, y, nodeType } = options;
+	pipeline.createNodeInActiveNetwork(nodeType, x, y);
 	return true;
 });
 
-ipcMain.handle("deleteNode", async (event, networkIndex, nodeId) => {
+ipcMain.handle("deleteNode", async (event, nodeId) => {
 	pipeline.deleteNodeFromActiveNetwork(nodeId);
+	return true;
+});
+
+ipcMain.handle("moveNode", async (event, options) => {
+	const { nodeId, x, y } = options;
+	pipeline.moveNodeInActiveNetwork(nodeId, x, y);
 	return true;
 });
 
@@ -142,9 +150,9 @@ ipcMain.handle("setActiveNetwork", async (event, networkId) => {
 	return true;
 });
 
-ipcMain.handle("getNodeNetwork", async (event) => {
-	const network = pipeline.getActiveNetwork();
-	return network;
+ipcMain.handle("requestNodeNetwork", async (event) => {
+	const network = pipeline.sendNetworkToFrontend();
+	return true;
 });
 
 ipcMain.handle("openFileDialog", async (event, options) => {

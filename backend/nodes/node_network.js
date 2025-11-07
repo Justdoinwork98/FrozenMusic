@@ -1,11 +1,27 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
 const { CubeNode, SphereNode } = require('./mesh_nodes.js');
 const { OutputNode } = require('./default_nodes.js');
+const { TranslateModifier, ScaleModifier, RotateModifier } = require('./modifier_nodes.js');
+const { AddNode, SubtractNode, MultiplyNode, DivideNode } = require('./math_nodes.js');
+
+const NODE_MENU = {
+	"Geometry": ["Cube", "Sphere"],
+	"Modifiers": ["Translate", "Scale", "Rotate"],
+	"Inputs": ["Constant", "MIDI data"],
+	"Math": ["Add", "Subtract", "Multiply", "Divide"],
+};
 
 const NODE_TYPES = {
 	"Cube": CubeNode,
 	"Sphere": SphereNode,
 	"Output": OutputNode,
+	"Translate": TranslateModifier,
+	"Scale": ScaleModifier,
+	"Rotate": RotateModifier,
+	"Add": AddNode,
+	"Subtract": SubtractNode,
+	"Multiply": MultiplyNode,
+	"Divide": DivideNode,
 };
 
 class NodeNetwork {
@@ -15,14 +31,16 @@ class NodeNetwork {
 		// Default network: a simple cube to output
 		const cubeNode = new CubeNode();
 		const outputNode = new OutputNode();
+		cubeNode.setPosition(-200, 0);
+		outputNode.setPosition(200, 0);
 		this.outputNodeId = outputNode.id;
 		this.addNode(cubeNode);
 		this.addNode(outputNode);
 		this.addConnection(cubeNode.id, 0, outputNode.id, 0);
 	}
 
-	getAllPossibleNodeTypes() {
-		return Object.keys(NODE_TYPES);
+	getNodeList() {
+		return Array.from(this.nodes.values());
 	}
 
 	runNetwork(midiData) {
@@ -110,4 +128,5 @@ class NodeNetwork {
 
 module.exports = {
 	NodeNetwork,
+	NODE_MENU,
 };

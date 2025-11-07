@@ -1,7 +1,7 @@
-const { Mesh } = require('./nodes/modifier.js');
+const { Mesh } = require('./nodes/modifier_nodes.js');
 const { ModifierPipeline, Track } = require('./modifier_pipeline.js');
 const { MidiDataManager } = require('./midi_data_manager.js');
-const { NodeNetwork } = require('./nodes/node_network.js');
+const { NodeNetwork, NODE_MENU } = require('./nodes/node_network.js');
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const fs = require('fs');
 
@@ -14,11 +14,28 @@ class Pipeline {
 		this.windowReference = null;
 	}
 
+	sendPossibleNodesToFrontend() {
+		if (!this.windowReference) {
+			throw new Error('No window reference set for Pipeline');
+		}
+		this.windowReference.webContents.send('possibleNodesUpdate', NODE_MENU);
+	}
+
 	sendNetworkToFrontend() {
 		if (!this.windowReference) {
 			throw new Error('No window reference set for Pipeline');
 		}
-		this.windowReference.webContents.send('nodeNetworkUpdate', this.networks);
+		console.log("Sending node network update to frontend.");
+		this.windowReference.webContents.send('nodeNetworkUpdate', this.getActiveNetwork().getNodeList());
+	}
+
+	moveNodeInActiveNetwork(nodeId, x, y) {
+		const network = this.getActiveNetwork();
+		const node = network.nodes.get(nodeId);
+		if (node) {
+			node.setPosition(x, y);
+			this.sendNetworkToFrontend();
+		}
 	}
 
 	activateNetwork(index) {
@@ -33,9 +50,11 @@ class Pipeline {
 		return this.networks[this.activeNetworkIndex];
 	}
 
-	createNodeInActiveNetwork(nodeType) {
+	createNodeInActiveNetwork(nodeType, x, y) {
 		const network = this.getActiveNetwork();
 		const node = network.createNode(nodeType);
+		node.setPosition(x, y);
+		this.sendNetworkToFrontend();
 		return node;
 	}
 
@@ -97,12 +116,10 @@ class Pipeline {
 			this.midiDataManager.readMidiFile(data.midiFile);
 		}
 
+		// Read the networks from the file
 		this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
-		console.log('Loaded networks:', this.networks);
 
-		// Send the updated node networks to the frontend
-		this.windowReference.webContents.send('nodeNetworkUpdate', this.networks);
-
+		// Set opened project path
 		this.openedProjectPath = filePath;
 
 		// If there is camera data, send it to the frontend
@@ -110,7 +127,9 @@ class Pipeline {
 			this.windowReference.webContents.send('cameraStateUpdate', data.camera);
 		}
 
+		// Send the new data to the frontend
 		this.runPipelineAndUpdatePreview();
+		this.sendNetworkToFrontend();
 
 		this.save(filePath);
 	}

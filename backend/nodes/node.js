@@ -1,3 +1,9 @@
+const NODE_INPUT_OUTPUT_TYPES = {
+	mesh: "Mesh",
+	number: "Number",
+}
+
+
 class InputPoint {
 	constructor(name, type, defaultValue) {
 		this.name = name;
@@ -5,6 +11,10 @@ class InputPoint {
 		this.defaultValue = defaultValue;
 		// What this input is connected to (either null or a nodeId, outputIndex)
 		this.connection = null;
+	}
+
+	isConnected() {
+		return this.connection !== null;
 	}
 
 	connect(nodeId, outputIndex) {
@@ -70,6 +80,11 @@ class Node {
 		this.inputs = inputs;
 		this.outputs = outputs;
 		this.id = Node.nextId++;
+		this.position = { x: 0, y: 0 };
+	}
+
+	setPosition(x, y) {
+		this.position = { x, y };
 	}
 
 	// Find the value of an input by evaluating the connected node
@@ -149,6 +164,7 @@ class Node {
 			name: this.name,
 			inputs: this.inputs.map(input => input.toJSON()),
 			outputs: this.outputs.map(output => output.toJSON()),
+			position: this.position,
 		};
 	}
 
@@ -157,6 +173,9 @@ class Node {
 		const outputs = data.outputs.map(outputData => OutputPoint.fromJSON(outputData));
 		const node = new Node(data.name, inputs, outputs);
 		node.id = data.id;
+		if (data.position) {
+			node.position = data.position;
+		}
 
 		// Make sure that the nextId is always ahead
 		if (node.id >= Node.nextId) {
@@ -172,5 +191,6 @@ Node.nextId = 1;
 module.exports = {
 	Node,
 	InputPoint,
-	OutputPoint
+	OutputPoint,
+	NODE_INPUT_OUTPUT_TYPES
 };
