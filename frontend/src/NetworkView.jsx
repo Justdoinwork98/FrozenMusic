@@ -20,6 +20,23 @@ function getHandleId(isOutput, index) {
 	return (isOutput ? 'out-' : 'in-') + index;
 }
 
+function getNodeClassColor(nodeClass) {
+	switch (nodeClass) {
+		case 'modifier':
+			return '#ffcc00';
+		case 'math':
+			return '#00ccff';
+		case 'geometry':
+			return '#ff00cc';
+		case 'output':
+			return '#00ffcc';
+		case 'midi':
+			return '#cc00ff';
+		default:
+			return '#ffffff';
+	}
+}
+
 const ModifierNode = ({ data, id, selected }) => {
 	// Extract metadata
 	const inputs = data.inputs || [];
@@ -29,86 +46,92 @@ const ModifierNode = ({ data, id, selected }) => {
 	const numInputs = inputs.length;
 	const numOutputs = outputs.length;
 	const numHandles = numInputs + numOutputs;
-	const nodeHeight = 25 + numHandles * 30;
+	const nodeHeight = 35 + numHandles * 30;
+
+	const nodeColor = getNodeClassColor(data.nodeClass);
 
 	return (
 		<div
 			className={`node modifier-node ${selected ? "selected" : ""}`}
-			style={{
+			style={selected ? {
 				height: nodeHeight,
-			}}
+				border: `2px solid ${nodeColor}`,
+				boxShadow: `0 0 10px ${nodeColor}40`,
+			} : { height: nodeHeight }}
 		>
-			<strong className="node-label" style={{ display: "block", marginBottom: 6 }}>
+			<strong className="node-label" style={{ backgroundColor: getNodeClassColor(data.nodeClass), boxShadow: `0 2px 5px ${nodeColor}30` }}>
 				{label}
 			</strong>
+			<div className="node-content">
 
-			{/* --- Outputs (Right side) --- */}
-			{outputs.map((output, i) => (
-				<div
-					key={getHandleId(true, i)}
-					style={{
-						position: "absolute",
-						top: 40 + i * 30,
-						right: 8,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "flex-end",
-						width: "100%",
-					}}
-				>
-					<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output}</span>
-					<Handle
-						type="source"
-						position={Position.Right}
-						id={`out-${i}`}
-						style={{ background: "#9cf", right: -12 }}
-					/>
-				</div>
-			))}
-
-			{/* --- Inputs (Left side) --- */}
-			{inputs.map((input, i) => {
-				return (
+				{/* --- Outputs (Right side) --- */}
+				{outputs.map((output, i) => (
 					<div
-						key={`in-${i}`}
+						key={getHandleId(true, i)}
 						style={{
 							position: "absolute",
-							top: 40 + (i + numOutputs) * 30,
-							left: 8,
+							top: 30 + i * 30,
+							right: 8,
 							display: "flex",
 							alignItems: "center",
+							justifyContent: "flex-end",
 							width: "100%",
 						}}
 					>
+						<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output}</span>
 						<Handle
-							type="target"
-							position={Position.Left}
-							id={getHandleId(false, i)}
-							style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff": "#fc9", left: -12 }}
+							type="source"
+							position={Position.Right}
+							id={`out-${i}`}
+							style={{ background: "#9cf", right: -12 }}
 						/>
-						<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
-
-						{/* Show input field only if not connected */}
-						{!input.isConnected && !input.isInputRequired && (
-							<input
-								type="text"
-								placeholder="value"
-								className ="input-constant-field"
-								defaultValue={input.defaultValue}
-								onChange={(e) => {
-									// Send the updated constant value to the backend
-									const options = {
-										nodeId: parseInt(id),
-										inputIndex: i,
-										value: e.target.value,
-									};
-									window.electronAPI.updateNodeInputDefault(options);
-								}}
-							/>
-						)}
 					</div>
-				);
-			})}
+				))}
+
+				{/* --- Inputs (Left side) --- */}
+				{inputs.map((input, i) => {
+					return (
+						<div
+							key={`in-${i}`}
+							style={{
+								position: "absolute",
+								top: 30 + (i + numOutputs) * 30,
+								left: 8,
+								display: "flex",
+								alignItems: "center",
+								width: "100%",
+							}}
+						>
+							<Handle
+								type="target"
+								position={Position.Left}
+								id={getHandleId(false, i)}
+								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff": "#fc9", left: -12 }}
+							/>
+							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
+
+							{/* Show input field only if not connected */}
+							{!input.isConnected && !input.isInputRequired && (
+								<input
+									type="text"
+									placeholder="value"
+									className ="input-constant-field"
+									defaultValue={input.defaultValue}
+									onChange={(e) => {
+										// Send the updated constant value to the backend
+										const options = {
+											nodeId: parseInt(id),
+											inputIndex: i,
+											value: parseFloat(e.target.value) || 0,
+										};
+										window.electronAPI.updateNodeInputDefault(options);
+									}}
+								/>
+							)}
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 };
@@ -126,18 +149,29 @@ export default function NetworkView() {
 
 	const [possibleNodes, setPossibleNodes] = useState({});
 
-	// Initial example nodes and edges
-	const initialNodes = [
-		{ id: '1', type: "modifierNode", position: { x: 250, y: 5 }, data: { label: 'Cube Mesh' }, inputs: [{ name: 'Input 1', isConnected: true}], outputs: ['Mesh'] },
-		{ id: '2', type: "modifierNode", position: { x: 400, y: 100 }, data: { label: 'Modifier Node', inputs: [{ name: 'Input 1', isConnected: true}, { name: 'Input 2', isConnected: false}, { name: 'Input 3', isConnected: true}, { name: 'Input 4', isConnected: false}, { name: 'Input 5', isConnected: false}], outputs: ['Output 1', 'Output 2', 'Output 3', 'Output 4'] } },
-	];
-
-	const initialEdges = [{ id: 'e1-2', source: '1', target: '2', sourceHandle: getHandleId(true, 0), targetHandle: getHandleId(false, 0) }];
-
-	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	const [nodes, setNodes, onNodesChange] = useNodesState([]);
+	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
 	const [menuPos, setMenuPos] = useState(null);
+
+	const [activeNetworkIndex, setActiveNetworkIndex] = useState(0);
+	const [numberOfTracks, setNumberOfTracks] = useState(0);
+
+	// Handle an update to the number of tracks
+	useEffect(() => {
+		window.electronAPI.onNumberOfTracksUpdate((numTracks) => {
+			console.log("Number of tracks updated:", numTracks);
+			setNumberOfTracks(numTracks);
+		});
+
+		// Request the initial number of tracks
+		window.electronAPI.requestNumberOfTracks();
+	}, []);
+
+	const selectNetwork = (networkIndex) => {
+		setActiveNetworkIndex(networkIndex);
+		window.electronAPI.setActiveNetwork(networkIndex);
+	}
 
 	// Handle a node being moved
 	const onNodeDragStop = useCallback((event, node) => {
@@ -194,6 +228,7 @@ export default function NetworkView() {
 							defaultValue: input.defaultValue,
 						})),
 						outputs: node.outputs.map((output) => output.name),
+						nodeClass: node.nodeClass,
 					}
 				};
 				updatedNodes.push(newNode);
@@ -271,42 +306,73 @@ export default function NetworkView() {
 	}, []);
 
 
-
 	return (
-		<div className="networkview" onContextMenu={handleNetworkContextMenu}>
-			{ /* Render the context menu if menuPos is set */ }
-			{menuPos && (
-				<NetworkContextMenu
-					x={menuPos.x}
-					y={menuPos.y}
-					onClose={() => setMenuPos(null)}
-					onSelect={handleSelect}
-					possibleNodes={possibleNodes}
-				/>
-			)}
-			
-			<ReactFlow
-				onNodeDragStop={onNodeDragStop}
-				onNodeClick={(event, node) => setSelectedNode(node)}
-				onPaneClick={onPaneClick}
-				ref={ref}
-				nodes={nodes}
-				edges={edges}
-				nodeTypes={nodeTypes}
-				onNodesChange={onNodesChange}
-				onEdgesChange={onEdgesChange}
-				onConnect={onConnect}
-				onEdgesDelete={onEdgesDelete}
-				fitView
+	<div className="networkview" onContextMenu={handleNetworkContextMenu}>
+
+		{/* Network selector buttons */}
+		<div className="network-selector" style={{
+			position: "absolute",
+			top: 30,
+			left: 10,
+			display: "flex",
+			gap: "6px",
+			zIndex: 10
+		}}>
+		{Array.from({ length: numberOfTracks }).map((_, i) => (
+			<button
+				key={i}
+				onClick={() => selectNetwork(i)}
+				className={"network-select-button" + (activeNetworkIndex === i ? " active" : "")}
+				title={`Select MIDI track ${i+1}`}
 			>
-				<Controls />
-				<Background 
-					variant="dots"
-					gap={32}
-					size={1}
-					color="#ffffff36"
-				/>
-			</ReactFlow>
+			{i+1}
+			</button>
+		))}
 		</div>
+
+		{nodes.length === 0 ? (
+		// Show buttons if no nodes are loaded
+		<div className="no-network-container">
+			<h2 className="intro-text">Welcome to the frozen music editor!</h2>
+			<h5 className="intro-text">Get started by loading a project or starting a project from a MIDI file</h5>
+			<p onClick={() => window.electronAPI.openProject()} className="open-project-button">
+			Load Project...
+			</p>
+			<p onClick={() => window.electronAPI.openMidiFile()} className="open-project-button">
+			Load MIDI File...
+			</p>
+		</div>
+		) : (
+		<>
+			{menuPos && (
+			<NetworkContextMenu
+				x={menuPos.x}
+				y={menuPos.y}
+				onClose={() => setMenuPos(null)}
+				onSelect={handleSelect}
+				possibleNodes={possibleNodes}
+			/>
+			)}
+
+			<ReactFlow
+			onNodeDragStop={onNodeDragStop}
+			onNodeClick={(event, node) => setSelectedNode(node)}
+			onPaneClick={onPaneClick}
+			ref={ref}
+			nodes={nodes}
+			edges={edges}
+			nodeTypes={nodeTypes}
+			onNodesChange={onNodesChange}
+			onEdgesChange={onEdgesChange}
+			onConnect={onConnect}
+			onEdgesDelete={onEdgesDelete}
+			fitView
+			>
+			<Controls />
+			<Background variant="dots" gap={32} size={1} color="#ffffff36" />
+			</ReactFlow>
+		</>
+		)}
+	</div>
 	);
 }

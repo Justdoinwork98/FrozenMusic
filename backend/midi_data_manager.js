@@ -23,7 +23,7 @@ class MidiDataManager {
 		return this.midiData !== null;
 	}
 
-	readMidiFile(filePath) {
+	readMidiFile(filePath, then) {
 		this.loadedMidiFile = filePath;
 
 		fs.readFile(filePath, 'base64', (err, data) => {
@@ -99,6 +99,10 @@ class MidiDataManager {
 
 			// Log the parsed MIDI data
 			console.debug(parsedData);
+
+			if (then) {
+				then();
+			}
 		});
 	}
 }

@@ -14,6 +14,21 @@ class Pipeline {
 		this.windowReference = null;
 	}
 
+	sendNumberOfTracksToFrontend() {
+		if (!this.windowReference) {
+			throw new Error('No window reference set for Pipeline');
+		}
+
+		const numTracks = this.midiDataManager.hasMidiData() ?
+			this.midiDataManager.getMidiData().track.length :
+			0;
+
+		console.log("Sending number of tracks to frontend:", numTracks);
+		console.log(this.midiDataManager.getMidiData());
+
+		this.windowReference.webContents.send('numberOfTracksUpdate', numTracks);
+	}
+
 	sendProjectNameToFrontend() {
 		if (!this.windowReference) {
 			throw new Error('No window reference set for Pipeline');
@@ -67,6 +82,7 @@ class Pipeline {
 		}
 
 		this.activeNetworkIndex = index;
+		this.sendNetworkToFrontend();
 	}
 
 	getActiveNetwork() {
@@ -98,7 +114,7 @@ class Pipeline {
 		this.networks.forEach((network, i) => {
 			let totalMesh = new Mesh();
 			// Loop through each MIDI note
-			for (const midiNote of this.midiDataManager.getMidiData().track[1].notes) {
+			for (const midiNote of this.midiDataManager.getMidiData().track[i].notes) {
 				const mesh = network.runNetwork(midiNote);
 				if (mesh == null) {
 					//console.log("Network " + i + " did not produce a mesh for MIDI note ", midiNote);
@@ -110,6 +126,8 @@ class Pipeline {
 			meshes.push(totalMesh);
 		});
 
+		this.savedMeshes = meshes;
+
 		return meshes;
 	}
 
@@ -117,6 +135,7 @@ class Pipeline {
 		const outputMesh = this.runPipeline();
 		if (outputMesh == null) {
 			// Something was not connected properly
+			console.log("Pipeline did not produce a valid output mesh.");
 			return;
 		}
 		console.log("Updating preview model in frontend.");
@@ -154,26 +173,115 @@ class Pipeline {
 
 		// Load MIDI file if present
 		if (data.midiFile) {
-			this.midiDataManager.readMidiFile(data.midiFile);
+			this.midiDataManager.readMidiFile(data.midiFile, () => {
+				// Read the networks from the file
+				this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
+				// Ensure that each network has an output node
+				this.networks.forEach(network => network.verifyOrAddOutputNode());
+
+				// Add or remove networks to match number of tracks
+				const numTracks = this.midiDataManager.getMidiData().track.length;
+				while (this.networks.length < numTracks) {
+					const newNetwork = new NodeNetwork();
+					newNetwork.makeDefaultNetwork();
+					this.networks.push(newNetwork);
+				}
+
+				// Set opened project path
+				this.openedProjectPath = filePath;
+
+				// If there is camera data, send it to the frontend
+				if (data.camera) {
+					this.windowReference.webContents.send('cameraStateUpdate', data.camera);
+				}
+
+				// Send the new data to the frontend
+				this.runPipelineAndUpdatePreview();
+				this.sendNetworkToFrontend();
+				this.sendProjectNameToFrontend();
+				this.sendNumberOfTracksToFrontend();;
+			});
+		}
+	}
+
+	openMidiFile(filePath) {
+		this.midiDataManager.readMidiFile(filePath, () => {
+			// Create the networks for the tracks
+			this.networks = this.midiDataManager.getMidiData().track.map(track => new NodeNetwork());
+			this.networks.forEach(network => network.makeDefaultNetwork());
+
+			this.runPipelineAndUpdatePreview();
+			this.sendNetworkToFrontend();
+			this.sendNumberOfTracksToFrontend();
+		});
+	}
+
+	exportMeshAsObj(filePath) {
+		if (!this.savedMeshes) {
+			throw new Error('No mesh to export. Run the pipeline first.');
 		}
 
-		// Read the networks from the file
-		this.networks = networkData.map(networkData => NodeNetwork.fromJSON(networkData));
-		// Ensure that each network has an output node
-		this.networks.forEach(network => network.verifyOrAddOutputNode());
+		let objData = '';
 
-		// Set opened project path
-		this.openedProjectPath = filePath;
+		console.log(this.savedMeshes);
 
-		// If there is camera data, send it to the frontend
-		if (data.camera) {
-			this.windowReference.webContents.send('cameraStateUpdate', data.camera);
+		this.savedMeshes.forEach((mesh, meshIndex) => {
+			objData += `o Mesh${meshIndex}\n`;
+
+			// Write vertices
+			mesh.vertices.forEach(v => {
+				objData += `v ${v.x} ${v.y} ${v.z}\n`;
+			});
+
+			// Write faces (assuming mesh.faces contains vertex indices arrays [v0,v1,v2])
+			mesh.tris.forEach(t => {
+				objData += `f ${t.v1+1} ${t.v2+1} ${t.v3+1}\n`; // OBJ uses 1-based indexing
+			});
+		});
+
+		fs.writeFileSync(filePath, objData, 'utf8');
+		console.log(`Saved OBJ to ${filePath}`);
+	}
+
+	exportMeshAsStl(filePath) {
+		if (!this.savedMeshes) {
+			throw new Error('No mesh to export. Run the pipeline first.');
 		}
 
-		// Send the new data to the frontend
-		this.runPipelineAndUpdatePreview();
-		this.sendNetworkToFrontend();
-		this.sendProjectNameToFrontend();
+		let stlData = 'solid mesh\n';
+
+		this.savedMeshes.forEach((mesh, meshIndex) => {
+			mesh.tris.forEach(t => {
+				const v0 = mesh.vertices[t.v1];
+				const v1 = mesh.vertices[t.v2];
+				const v2 = mesh.vertices[t.v3];
+
+				if (!v0 || !v1 || !v2) {
+					//console.warn(`Skipping invalid triangle:`, t, " for mesh with num vertices ", mesh.vertices.length);
+					return;
+				}
+
+				// Compute normal (cross product)
+				const ux = v1.x - v0.x, uy = v1.y - v0.y, uz = v1.z - v0.z;
+				const vx = v2.x - v0.x, vy = v2.y - v0.y, vz = v2.z - v0.z;
+				const nx = uy*vz - uz*vy;
+				const ny = uz*vx - ux*vz;
+				const nz = ux*vy - uy*vx;
+
+				stlData += `facet normal ${nx} ${ny} ${nz}\n`;
+				stlData += `  outer loop\n`;
+				stlData += `    vertex ${v0.x} ${v0.y} ${v0.z}\n`;
+				stlData += `    vertex ${v1.x} ${v1.y} ${v1.z}\n`;
+				stlData += `    vertex ${v2.x} ${v2.y} ${v2.z}\n`;
+				stlData += `  endloop\n`;
+				stlData += `endfacet\n`;
+			});
+		});
+
+		stlData += 'endsolid mesh\n';
+
+		fs.writeFileSync(filePath, stlData, 'utf8');
+		console.log(`Saved STL to ${filePath}`);
 	}
 }
 

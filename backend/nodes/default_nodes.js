@@ -7,6 +7,7 @@ class OutputNode extends Node {
 		];
 		const outputs = [];
 		super("Output", inputs, outputs);
+		this.nodeClass = 'output';
 	}
 
 	getOutput(network, midiData, outputIndex) {
@@ -27,6 +28,7 @@ class MidiInputNode extends Node {
 			new OutputPoint("Start Time", "Number"),
 		];
 		super("MIDI data", inputs, outputs);
+		this.nodeClass = 'midi';
 	}
 
 	getOutput(network, midiData, outputIndex) {

@@ -35,6 +35,16 @@ export default function Toolbar() {
 		closeMenus();
 	}
 
+	const onExportMeshAsObj = () => {
+		window.electronAPI.saveMeshAsObj();
+		closeMenus();
+	}
+
+	const onExportMeshAsStl = () => {
+		window.electronAPI.saveMeshAsStl();
+		closeMenus();
+	}
+
 	// Subscribe to project name updates from the backend
 	useEffect(() => {
 		window.electronAPI.onProjectNameUpdate((name) => {
@@ -59,6 +69,19 @@ export default function Toolbar() {
 						</div>
 						<div className="dropdown-item" onClick={onOpen}>
 							Open…
+						</div>
+					</div>
+				)}
+			</div>
+			<div className="menu-item" onClick={() => toggleMenu("export")}>
+				Export
+				{openMenu === "export" && (
+					<div className="dropdown">
+						<div className="dropdown-item" onClick={onExportMeshAsObj}>
+							Export As OBJ…
+						</div>
+						<div className="dropdown-item" onClick={onExportMeshAsStl}>
+							Export As STL…
 						</div>
 					</div>
 				)}

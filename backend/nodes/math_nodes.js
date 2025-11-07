@@ -5,6 +5,7 @@ class AddNode extends Node {
 		const inputs = [new InputPoint("Value 1", NODE_INPUT_OUTPUT_TYPES.number, 0), new InputPoint("Value 2", NODE_INPUT_OUTPUT_TYPES.number, 0)];
 		const outputs = [new OutputPoint("Result", NODE_INPUT_OUTPUT_TYPES.number)];
 		super("Add", inputs, outputs);
+		this.nodeClass = 'math';
 	}
 
 	getOutput(network, midiData, outputIndex) {
@@ -19,6 +20,7 @@ class SubtractNode extends Node {
 		const inputs = [new InputPoint("Value 1", NODE_INPUT_OUTPUT_TYPES.number, 0), new InputPoint("Value 2", NODE_INPUT_OUTPUT_TYPES.number, 0)];
 		const outputs = [new OutputPoint("Result", NODE_INPUT_OUTPUT_TYPES.number)];
 		super("Subtract", inputs, outputs);
+		this.nodeClass = 'math';
 	}
 
 	getOutput(network, midiData, outputIndex) {
@@ -33,6 +35,7 @@ class MultiplyNode extends Node {
 		const inputs = [new InputPoint("Value 1", NODE_INPUT_OUTPUT_TYPES.number, 1), new InputPoint("Value 2", NODE_INPUT_OUTPUT_TYPES.number, 1)];
 		const outputs = [new OutputPoint("Result", NODE_INPUT_OUTPUT_TYPES.number)];
 		super("Multiply", inputs, outputs);
+		this.nodeClass = 'math';
 	}
 
 	getOutput(network, midiData, outputIndex) {
@@ -47,6 +50,7 @@ class DivideNode extends Node {
 		const inputs = [new InputPoint("Value 1", NODE_INPUT_OUTPUT_TYPES.number, 1), new InputPoint("Value 2", NODE_INPUT_OUTPUT_TYPES.number, 1)];
 		const outputs = [new OutputPoint("Result", NODE_INPUT_OUTPUT_TYPES.number)];
 		super("Divide", inputs, outputs);
+		this.nodeClass = 'math';
 	}
 
 	getOutput(network, midiData, outputIndex) {
