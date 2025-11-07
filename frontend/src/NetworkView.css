@@ -70,3 +70,27 @@
 	color: #ddd;
 	width: 60px;
 }
+
+.no-network-container {
+	text-align: center;
+}
+
+.open-project-button {
+	cursor: pointer;
+	color: var(--color-text);
+	padding: 10px 20px;
+	border-radius: 8px;
+	font-weight: 600;
+	margin: 10px 0;
+	display: inline-block;
+}
+
+.open-project-button:hover {
+	text-decoration: underline;
+	background: #ffffff0a;
+}
+
+.intro-text {
+	text-align: center;
+	color: var(--color-text);
+}

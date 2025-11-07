@@ -18,7 +18,7 @@ function createWindow() {
 			preload: path.join(__dirname, "preload.js"),
 			contextIsolation: true,
 			nodeIntegration: false,
-			autoHideMenuBar: true,
+			//autoHideMenuBar: true,
 			// Remove the default window around our app: TODO doesnt work
 			//frame: false,
 		},
@@ -44,24 +44,24 @@ app.whenReady().then(() => {
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow();
 	});
-	pipeline.load("project1.json");
+	//pipeline.load("project1.json");
 });
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle("requestPossibleNodes", async (event) => {
+ipcMain.on("requestPossibleNodes", async (event) => {
 	pipeline.sendPossibleNodesToFrontend();
 	return true;
 });
 
-ipcMain.handle("requestPreviewModel", async (event) => {
+ipcMain.on("requestPreviewModel", async (event) => {
 	pipeline.runPipelineAndUpdatePreview();
 	return true;
 });
 
-ipcMain.handle("saveProject", async (event, options) => {
+ipcMain.on("saveProject", async (event, options) => {
 	const saveData = options;
 
 	// If no project is opened yet, prompt for "Save As"
@@ -78,7 +78,7 @@ ipcMain.handle("saveProject", async (event, options) => {
 	pipeline.save(pipeline.openedProjectPath, saveData);
 });
 
-ipcMain.handle("saveProjectAs", async (event, options) => {
+ipcMain.on("saveProjectAs", async (event, options) => {
 	const saveData = options;
 
 	const { canceled, filePath } = await dialog.showSaveDialog({
@@ -94,7 +94,7 @@ ipcMain.handle("saveProjectAs", async (event, options) => {
 	return canceled ? null : projectName;
 });
 
-ipcMain.handle("openProject", async (event, options) => {
+ipcMain.on("openProject", async (event, options) => {
 	const { canceled, filePaths } = await dialog.showOpenDialog({
 		properties: ["openFile"],
 		filters: [{ name: "JSON Files", extensions: ["json"] }],
@@ -110,26 +110,26 @@ ipcMain.handle("openProject", async (event, options) => {
 });
 
 // Node network actions
-ipcMain.handle("createNode", async (event, options) => {
+ipcMain.on("createNode", async (event, options) => {
 	const { x, y, nodeType } = options;
 	pipeline.createNodeInActiveNetwork(nodeType, x, y);
 	pipeline.runPipelineAndUpdatePreview();
 	return true;
 });
 
-ipcMain.handle("deleteNode", async (event, nodeId) => {
+ipcMain.on("deleteNode", async (event, nodeId) => {
 	pipeline.deleteNodeFromActiveNetwork(nodeId);
 	pipeline.runPipelineAndUpdatePreview();
 	return true;
 });
 
-ipcMain.handle("moveNode", async (event, options) => {
+ipcMain.on("moveNode", async (event, options) => {
 	const { nodeId, x, y } = options;
 	pipeline.moveNodeInActiveNetwork(nodeId, x, y);
 	return true;
 });
 
-ipcMain.handle("addConnection", async (event, options) => {
+ipcMain.on("addConnection", async (event, options) => {
 	const { fromNodeId, outputIndex, toNodeId, inputIndex } = options;
 
 	const network = pipeline.getActiveNetwork();
@@ -141,7 +141,7 @@ ipcMain.handle("addConnection", async (event, options) => {
 	return true;
 });
 
-ipcMain.handle("removeConnection", async (event, options) => {
+ipcMain.on("removeConnection", async (event, options) => {
 	const { fromNodeId, outputIndex, toNodeId, inputIndex } = options;
 
 	const network = pipeline.getActiveNetwork();
@@ -153,22 +153,22 @@ ipcMain.handle("removeConnection", async (event, options) => {
 	return true;
 });
 
-ipcMain.handle("setActiveNetwork", async (event, networkId) => {
+ipcMain.on("setActiveNetwork", async (event, networkId) => {
 	pipeline.activateNetwork(networkId);
 	return true;
 });
 
-ipcMain.handle("requestNodeNetwork", async (event) => {
+ipcMain.on("requestNodeNetwork", async (event) => {
 	pipeline.sendNetworkToFrontend();
 	return true;
 });
 
-ipcMain.handle("requestProjectName", async (event) => {
+ipcMain.on("requestProjectName", async (event) => {
 	pipeline.sendProjectNameToFrontend();
 	return true;
 });
 
-ipcMain.handle("updateNodeInputDefault", async (event, options) => {
+ipcMain.on("updateNodeInputDefault", async (event, options) => {
 	const { nodeId, inputIndex, value } = options;
 
 	pipeline.updateNodeInputDefaultInActiveNetwork(nodeId, inputIndex, value);
@@ -176,7 +176,7 @@ ipcMain.handle("updateNodeInputDefault", async (event, options) => {
 	return true;
 });
 
-ipcMain.handle("openFileDialog", async (event, options) => {
+ipcMain.handle("openMidiFile", async (event, options) => {
 
 	const dialogOptions = {
 		properties: ["openFile"],
@@ -191,7 +191,7 @@ ipcMain.handle("openFileDialog", async (event, options) => {
 	const { canceled, filePaths } = await dialog.showOpenDialog(dialogOptions);
 
 	if (!canceled && filePaths.length > 0) {
-		midiDataManager.readMidiFile(filePaths[0]);
+		pipeline.openMidiFile(filePaths[0]);
 	}
 
 	return canceled ? null : filePaths[0];

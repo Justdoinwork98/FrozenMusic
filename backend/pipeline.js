@@ -117,6 +117,7 @@ class Pipeline {
 		const outputMesh = this.runPipeline();
 		if (outputMesh == null) {
 			// Something was not connected properly
+			console.log("Pipeline did not produce a valid output mesh.");
 			return;
 		}
 		console.log("Updating preview model in frontend.");
@@ -174,6 +175,17 @@ class Pipeline {
 		this.runPipelineAndUpdatePreview();
 		this.sendNetworkToFrontend();
 		this.sendProjectNameToFrontend();
+	}
+
+	openMidiFile(filePath) {
+		this.midiDataManager.readMidiFile(filePath, () => {
+			// Create the networks for the tracks
+			this.networks = this.midiDataManager.getMidiData().track.map(track => new NodeNetwork());
+			this.networks.forEach(network => network.makeDefaultNetwork());
+
+			this.runPipelineAndUpdatePreview();
+			this.sendNetworkToFrontend();
+		});
 	}
 }
 

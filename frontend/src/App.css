@@ -51,12 +51,12 @@ body,
 
 .app-grid {
 	display: grid;
-	grid-template-columns: 200px 1fr;	/* fixed sidebar, flexible main area */
-	grid-template-rows: 20px 40% 60%;		/* networkview 40%, preview 60% */
+	grid-template-columns: 1fr;
+	grid-template-rows: 20px 40% 60%;
 	grid-template-areas:
-		"toolbar toolbar"
-		"sidebar networkview"
-		"sidebar preview";
+		"toolbar"
+		"networkview"
+		"preview";
 	height: 100vh;
 	width: 100vw;
 	overflow: hidden;

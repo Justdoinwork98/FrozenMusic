@@ -4,27 +4,6 @@
     {
       "nodes": [
         {
-          "id": 1,
-          "name": "Cube",
-          "inputs": [],
-          "outputs": [
-            {
-              "name": "Mesh Output",
-              "type": "Mesh",
-              "connections": [
-                {
-                  "nodeId": 6,
-                  "inputIndex": 0
-                }
-              ]
-            }
-          ],
-          "position": {
-            "x": -200,
-            "y": 0
-          }
-        },
-        {
           "id": 2,
           "name": "Output",
           "inputs": [
@@ -78,7 +57,7 @@
               "name": "z",
               "type": "Number",
               "connection": null,
-              "defaultValue": 0
+              "defaultValue": 1
             }
           ],
           "outputs": [
@@ -95,7 +74,7 @@
           ],
           "position": {
             "x": 411.0223684210524,
-            "y": 322.3810526315789
+            "y": 320.3810526315789
           }
         },
         {
@@ -188,7 +167,7 @@
               "name": "Mesh Input",
               "type": "Mesh",
               "connection": {
-                "nodeId": 1,
+                "nodeId": 7,
                 "outputIndex": 0
               },
               "defaultValue": null
@@ -237,20 +216,48 @@
             "x": 141.5947368421052,
             "y": -22.781578947368487
           }
+        },
+        {
+          "id": 7,
+          "name": "Cube",
+          "inputs": [
+            {
+              "name": "Subdivision level",
+              "type": "Number",
+              "connection": null,
+              "defaultValue": 0
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Mesh Output",
+              "type": "Mesh",
+              "connections": [
+                {
+                  "nodeId": 6,
+                  "inputIndex": 0
+                }
+              ]
+            }
+          ],
+          "position": {
+            "x": -161.68579697670873,
+            "y": -35.099824270266716
+          }
         }
       ]
     }
   ],
   "camera": {
     "position": {
-      "x": 16.04793411713488,
-      "y": 62.84996066751135,
-      "z": 24.862118034765075
+      "x": 12.560685786121851,
+      "y": 53.023397994753786,
+      "z": 38.13470870031126
     },
     "target": {
-      "x": 17.14872623825072,
-      "y": 60.51356372243129,
-      "z": 10.119188191451707
+      "x": 42.73591102690153,
+      "y": 54.736124250084806,
+      "z": 26.721983885828813
     }
   }
 }

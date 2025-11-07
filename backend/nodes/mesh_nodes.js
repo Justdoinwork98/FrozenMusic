@@ -3,7 +3,9 @@ const { Mesh } = require('../mesh.js');
 
 class MeshNode extends Node {
 	constructor(name) {
-		const inputs = [];
+		const inputs = [
+			new InputPoint("Subdivision level", "Number", 0),
+		];
 		const outputs = [
 			new OutputPoint("Mesh Output", "Mesh"),
 		];
@@ -22,8 +24,10 @@ class CubeNode extends MeshNode {
 			throw new Error('Invalid output index for CubeNode: ' + outputIndex);
 		}
 
+		const subdivisionLevel = this.getInput(network, 0, midiData);
+
 		// Create a simple cube mesh
-		const mesh = Mesh.cube();
+		const mesh = Mesh.cube(1, subdivisionLevel);
 		return mesh;
 	}
 }
@@ -39,7 +43,7 @@ class SphereNode extends MeshNode {
 			throw new Error('Invalid output index for SphereNode: ' + outputIndex);
 		}
 		// Create a simple sphere mesh
-		const mesh = Mesh.sphere();
+		const mesh = Mesh.sphere(1, subdivisionLevel);
 		return mesh;
 	}
 }

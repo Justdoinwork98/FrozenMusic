@@ -100,7 +100,7 @@ const ModifierNode = ({ data, id, selected }) => {
 									const options = {
 										nodeId: parseInt(id),
 										inputIndex: i,
-										value: e.target.value,
+										value: parseFloat(e.target.value) || 0,
 									};
 									window.electronAPI.updateNodeInputDefault(options);
 								}}
@@ -126,16 +126,8 @@ export default function NetworkView() {
 
 	const [possibleNodes, setPossibleNodes] = useState({});
 
-	// Initial example nodes and edges
-	const initialNodes = [
-		{ id: '1', type: "modifierNode", position: { x: 250, y: 5 }, data: { label: 'Cube Mesh' }, inputs: [{ name: 'Input 1', isConnected: true}], outputs: ['Mesh'] },
-		{ id: '2', type: "modifierNode", position: { x: 400, y: 100 }, data: { label: 'Modifier Node', inputs: [{ name: 'Input 1', isConnected: true}, { name: 'Input 2', isConnected: false}, { name: 'Input 3', isConnected: true}, { name: 'Input 4', isConnected: false}, { name: 'Input 5', isConnected: false}], outputs: ['Output 1', 'Output 2', 'Output 3', 'Output 4'] } },
-	];
-
-	const initialEdges = [{ id: 'e1-2', source: '1', target: '2', sourceHandle: getHandleId(true, 0), targetHandle: getHandleId(false, 0) }];
-
-	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	const [nodes, setNodes, onNodesChange] = useNodesState([]);
+	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
 	const [menuPos, setMenuPos] = useState(null);
 
@@ -271,42 +263,51 @@ export default function NetworkView() {
 	}, []);
 
 
-
 	return (
-		<div className="networkview" onContextMenu={handleNetworkContextMenu}>
-			{ /* Render the context menu if menuPos is set */ }
-			{menuPos && (
-				<NetworkContextMenu
-					x={menuPos.x}
-					y={menuPos.y}
-					onClose={() => setMenuPos(null)}
-					onSelect={handleSelect}
-					possibleNodes={possibleNodes}
-				/>
-			)}
-			
-			<ReactFlow
-				onNodeDragStop={onNodeDragStop}
-				onNodeClick={(event, node) => setSelectedNode(node)}
-				onPaneClick={onPaneClick}
-				ref={ref}
-				nodes={nodes}
-				edges={edges}
-				nodeTypes={nodeTypes}
-				onNodesChange={onNodesChange}
-				onEdgesChange={onEdgesChange}
-				onConnect={onConnect}
-				onEdgesDelete={onEdgesDelete}
-				fitView
-			>
-				<Controls />
-				<Background 
-					variant="dots"
-					gap={32}
-					size={1}
-					color="#ffffff36"
-				/>
-			</ReactFlow>
+	<div className="networkview" onContextMenu={handleNetworkContextMenu}>
+		{nodes.length === 0 ? (
+		// Show buttons if no nodes are loaded
+		<div className="no-network-container">
+			<h2 className="intro-text">Welcome to the frozen music editor!</h2>
+			<h5 className="intro-text">Get started by loading a project or starting a project from a MIDI file</h5>
+			<p onClick={() => window.electronAPI.openProject()} className="open-project-button">
+			Load Project...
+			</p>
+			<p onClick={() => window.electronAPI.openMidiFile()} className="open-project-button">
+			Load MIDI File...
+			</p>
 		</div>
+		) : (
+		<>
+			{menuPos && (
+			<NetworkContextMenu
+				x={menuPos.x}
+				y={menuPos.y}
+				onClose={() => setMenuPos(null)}
+				onSelect={handleSelect}
+				possibleNodes={possibleNodes}
+			/>
+			)}
+
+			<ReactFlow
+			onNodeDragStop={onNodeDragStop}
+			onNodeClick={(event, node) => setSelectedNode(node)}
+			onPaneClick={onPaneClick}
+			ref={ref}
+			nodes={nodes}
+			edges={edges}
+			nodeTypes={nodeTypes}
+			onNodesChange={onNodesChange}
+			onEdgesChange={onEdgesChange}
+			onConnect={onConnect}
+			onEdgesDelete={onEdgesDelete}
+			fitView
+			>
+			<Controls />
+			<Background variant="dots" gap={32} size={1} color="#ffffff36" />
+			</ReactFlow>
+		</>
+		)}
+	</div>
 	);
 }
