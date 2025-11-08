@@ -3,7 +3,9 @@ const { Mesh } = require('../mesh.js');
 
 class PreviousNoteMeshNode extends Node {
 	constructor() {
-		const inputs = [];
+		const inputs = [
+			new InputPoint("Else", "Mesh", null),
+		];
 		const outputs = [
 			new OutputPoint("Previous Mesh", "Mesh"),
 		];
@@ -17,6 +19,12 @@ class PreviousNoteMeshNode extends Node {
 		}
 
 		const previousNote = data.previousMesh;
+
+		if (previousNote == null) {
+			// If there is no previous note, return the "Else" input
+			return this.getInput(network, 0, data);
+		}
+
 		return previousNote;
 	}
 }
@@ -87,8 +95,49 @@ class SphereNode extends MeshNode {
 		if (outputIndex !== 0) {
 			throw new Error('Invalid output index for SphereNode: ' + outputIndex);
 		}
+
+		const subdivisionLevel = this.getInput(network, 0, data);
+
 		// Create a simple sphere mesh
 		const mesh = Mesh.sphere(1, subdivisionLevel);
+		return mesh;
+	}
+}
+
+class PlaneNode extends MeshNode {
+	constructor() {
+		super("Plane");
+	}
+
+	// Get the inputs and return the output Mesh
+	getOutput(network, data, outputIndex) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for PlaneNode: ' + outputIndex);
+		}
+
+		const subdivisionLevel = this.getInput(network, 0, data);
+
+		// Create a simple plane mesh
+		const mesh = Mesh.plane(1, 1, subdivisionLevel);
+		return mesh;
+	}
+}
+
+class CylinderNode extends MeshNode {
+	constructor() {
+		super("Cylinder");
+	}
+
+	// Get the inputs and return the output Mesh
+	getOutput(network, data, outputIndex) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for CylinderNode: ' + outputIndex);
+		}
+
+		const subdivisionLevel = this.getInput(network, 0, data);
+
+		// Create a simple cylinder mesh
+		const mesh = Mesh.cylinder(1, 1, subdivisionLevel);
 		return mesh;
 	}
 }
@@ -97,5 +146,7 @@ module.exports = {
 	CubeNode,
 	SphereNode,
 	CombineMeshNode,
-	PreviousNoteMeshNode
+	PreviousNoteMeshNode,
+	PlaneNode,
+	CylinderNode,
 };

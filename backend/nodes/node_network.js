@@ -1,5 +1,5 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
-const { CombineMeshNode, PreviousNoteMeshNode, CubeNode, SphereNode } = require('./mesh_nodes.js');
+const { CombineMeshNode, PreviousNoteMeshNode, CubeNode, SphereNode, PlaneNode, CylinderNode } = require('./mesh_nodes.js');
 const { OutputNode, MidiInputNode } = require('./default_nodes.js');
 const { TranslateModifier, ScaleModifier, RotateModifier } = require('./modifier_nodes.js');
 const { AddNode, SubtractNode, MultiplyNode, DivideNode, MapNode, ClampNode, RandomNode, SineNode, CosineNode,
@@ -8,7 +8,7 @@ const { AddNode, SubtractNode, MultiplyNode, DivideNode, MapNode, ClampNode, Ran
 const { NumberComparisonNode, SwitchNode, } = require('./logic_nodes.js');
 
 const NODE_MENU = {
-	"Geometry": ["Cube", "Sphere", "Combine meshes", "Previous Note Mesh"],
+	"Geometry": ["Cube", "Sphere", "Plane", "Cylinder", "Combine meshes", "Previous Note Mesh"],
 	"Modifiers": ["Translate", "Scale", "Rotate"],
 	"Inputs": ["Constant", "MIDI data"],
 	"Math": ["Add", "Subtract", "Multiply", "Divide", "Map", "Clamp", "Random", "Sine", "Cosine",
@@ -20,6 +20,9 @@ const NODE_MENU = {
 const NODE_TYPES = {
 	"Cube": CubeNode,
 	"Sphere": SphereNode,
+	"Plane": PlaneNode,
+	"Cylinder": CylinderNode,
+
 	"Combine meshes": CombineMeshNode,
 	"Previous Note Mesh": PreviousNoteMeshNode,
 	//

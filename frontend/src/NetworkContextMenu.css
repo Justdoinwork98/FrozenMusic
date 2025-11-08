@@ -18,7 +18,7 @@
 	z-index: 1000;
 	min-width: 160px;
 	box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-	text-size: 10px;
+	font-size: 12px;
 }
 
 .menu-item {

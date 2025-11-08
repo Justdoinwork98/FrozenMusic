@@ -183,6 +183,73 @@ class Mesh {
 
 		return mesh;
 	}
+
+	static plane(width = 1, depth = 1, subdivisions = 2) {
+		const halfWidth = width / 2;
+		const halfDepth = depth / 2;
+
+		const vertices = [
+			{ x: -halfWidth, y: 0, z: -halfDepth },
+			{ x: halfWidth, y: 0, z: -halfDepth },
+			{ x: halfWidth, y: 0, z: halfDepth },
+			{ x: -halfWidth, y: 0, z: halfDepth },
+		];
+		const tris = [
+			{ v1: 0, v2: 1, v3: 2 },
+			{ v1: 0, v2: 2, v3: 3 },
+		];
+		let plane = new Mesh(vertices, tris);
+		plane.subdivide(subdivisions); // Subdivide for more detail
+		return plane;
+	}
+
+	static cylinder(diameter = 1, height = 1, subdivisions=2) {
+		const radius = diameter / 2;
+		// num segments = 6 * 2^subdivisions (6 default, doubles each subdivision)
+		const segments = Math.max(3, Math.floor(6 * Math.pow(2, subdivisions))); // Increase segments with subdivisions
+		const vertices = [];
+		const tris = [];
+
+		// Create top and bottom center vertices
+		vertices.push({ x: 0, y: height / 2, z: 0 }); // Top center
+		vertices.push({ x: 0, y: -height / 2, z: 0 }); // Bottom center
+		const topCenterIndex = 0;
+		const bottomCenterIndex = 1;
+
+		// Create circle vertices
+		for (let i = 0; i < segments; i++) {
+			const angle = (i / segments) * Math.PI * 2;
+			const x = Math.cos(angle) * radius;
+			const z = Math.sin(angle) * radius;
+			vertices.push({ x: x, y: height / 2, z: z }); // Top edge
+			vertices.push({ x: x, y: -height / 2, z: z }); // Bottom edge
+		}
+
+		// Create top and bottom faces
+		for (let i = 0; i < segments; i++) {
+			// Top face
+			const topEdgeIndex = 2 + i * 2;
+			const nextTopEdgeIndex = 2 + ((i + 1) % segments) * 2;
+			tris.push({ v1: topCenterIndex, v2: nextTopEdgeIndex, v3: topEdgeIndex });
+
+			// Bottom face
+			const bottomEdgeIndex = 2 + i * 2 + 1;
+			const nextBottomEdgeIndex = 2 + ((i + 1) % segments) * 2 + 1;
+			tris.push({ v1: bottomCenterIndex, v2: bottomEdgeIndex, v3: nextBottomEdgeIndex });
+		}
+
+		// Create side faces
+		for (let i = 0; i < segments; i++) {
+			const topEdgeIndex = 2 + i * 2;
+			const bottomEdgeIndex = 2 + i * 2 + 1;
+			const nextTopEdgeIndex = 2 + ((i + 1) % segments) * 2;
+			const nextBottomEdgeIndex = 2 + ((i + 1) % segments) * 2 + 1;
+			tris.push({ v1: topEdgeIndex, v2: nextTopEdgeIndex, v3: bottomEdgeIndex });
+			tris.push({ v1: bottomEdgeIndex, v2: nextTopEdgeIndex, v3: nextBottomEdgeIndex });
+		}
+
+		return new Mesh(vertices, tris);
+	}
 }
 
 export { Mesh };

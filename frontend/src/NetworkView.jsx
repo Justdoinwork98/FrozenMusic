@@ -45,10 +45,15 @@ function getNodeTooltip(nodeName) {
 			return 'Generates a cube mesh with a specified subdivision level.';
 		case 'Sphere':
 			return 'Generates a sphere mesh with a specified subdivision level.';
+		case 'Plane':
+			return 'Generates a plane mesh with a specified subdivision level.';
+		case 'Cylinder':
+			return 'Generates a cylinder mesh with a specified subdivision level.';
+
 		case 'Combine meshes':
 			return 'Combines two input meshes into a single mesh.';
 		case 'Previous Note Mesh':
-			return 'Outputs the mesh generated for the previous MIDI note.';
+			return 'Outputs the mesh generated for the previous MIDI note. If no previous note exists, outputs the "Else" input mesh.';
 
 		case 'Translate':
 			return 'Translates the input mesh by specified x, y, z offsets.';
