@@ -1,28 +1,54 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
-const { CubeNode, SphereNode } = require('./mesh_nodes.js');
+const { CombineMeshNode, PreviousNoteMeshNode, CubeNode, SphereNode } = require('./mesh_nodes.js');
 const { OutputNode, MidiInputNode } = require('./default_nodes.js');
 const { TranslateModifier, ScaleModifier, RotateModifier } = require('./modifier_nodes.js');
-const { AddNode, SubtractNode, MultiplyNode, DivideNode } = require('./math_nodes.js');
+const { AddNode, SubtractNode, MultiplyNode, DivideNode, MapNode, ClampNode, RandomNode, SineNode, CosineNode,
+	FloorNode, MinNode, MaxNode, PowerNode, CeilNode, AbsoluteNode, ModuloNode
+ } = require('./math_nodes.js');
+const { NumberComparisonNode, SwitchNode, } = require('./logic_nodes.js');
 
 const NODE_MENU = {
-	"Geometry": ["Cube", "Sphere"],
+	"Geometry": ["Cube", "Sphere", "Combine meshes", "Previous Note Mesh"],
 	"Modifiers": ["Translate", "Scale", "Rotate"],
 	"Inputs": ["Constant", "MIDI data"],
-	"Math": ["Add", "Subtract", "Multiply", "Divide"],
+	"Math": ["Add", "Subtract", "Multiply", "Divide", "Map", "Clamp", "Random", "Sine", "Cosine",
+		"Floor", "Ceil", "Absolute", "Modulo", "Min", "Max", "Power"
+	],
+	"Logic": ["Number Comparison", "Switch"],
 };
 
 const NODE_TYPES = {
 	"Cube": CubeNode,
 	"Sphere": SphereNode,
+	"Combine meshes": CombineMeshNode,
+	"Previous Note Mesh": PreviousNoteMeshNode,
+	//
 	"Output": OutputNode,
 	"Translate": TranslateModifier,
 	"Scale": ScaleModifier,
 	"Rotate": RotateModifier,
+	// maths
 	"Add": AddNode,
 	"Subtract": SubtractNode,
 	"Multiply": MultiplyNode,
 	"Divide": DivideNode,
-	"MIDI data": MidiInputNode
+	"Map": MapNode,
+	"Clamp": ClampNode,
+	"Random": RandomNode,
+	"Sine": SineNode,
+	"Cosine": CosineNode,
+	"Floor": FloorNode,
+	"Min": MinNode,
+	"Max": MaxNode,
+	"Power": PowerNode,
+	"Ceil": CeilNode,
+	"Absolute": AbsoluteNode,
+	"Modulo": ModuloNode,
+	// inputs
+	"MIDI data": MidiInputNode,
+	// logic
+	"Number Comparison": NumberComparisonNode,
+	"Switch": SwitchNode,
 };
 
 class NodeNetwork {
@@ -65,11 +91,11 @@ class NodeNetwork {
 		return Array.from(this.nodes.values());
 	}
 
-	runNetwork(midiData) {
+	runNetwork(data) {
 		// Evaluate the output node
 		try {
 			const outputNode = this.nodes.get(this.outputNodeId);
-			const output = outputNode.getOutput(this, midiData, 0);
+			const output = outputNode.getOutput(this, data, 0);
 			for (const v of output.vertices) {
 				if (isNaN(v.x) || isNaN(v.y) || isNaN(v.z)) {
 					console.log("Invalid vertex data detected:", v);

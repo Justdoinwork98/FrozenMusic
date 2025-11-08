@@ -80,6 +80,12 @@ class Mesh {
 		this.subdivide(iterations - 1);
 	}
 
+	static combine(mesh1, mesh2) {
+		const combinedMesh = mesh1.clone();
+		combinedMesh.add(mesh2);
+		return combinedMesh;
+	}
+
 	static cube(size = 1, subdivisions = 2) {
 		const half = size / 2;
 		const vertices = [

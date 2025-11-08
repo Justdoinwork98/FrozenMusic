@@ -113,13 +113,22 @@ class Pipeline {
 		// Run the node network to produce the final mesh
 		this.networks.forEach((network, i) => {
 			let totalMesh = new Mesh();
+			let previousNoteMesh = new Mesh();
 			// Loop through each MIDI note
 			for (const midiNote of this.midiDataManager.getMidiData().track[i].notes) {
-				const mesh = network.runNetwork(midiNote);
+				const data = {
+					midiData: midiNote,
+					previousMesh: previousNoteMesh
+				};
+				const mesh = network.runNetwork(data);
 				if (mesh == null) {
+					// Empty mesh
+					previousNoteMesh = new Mesh();
 					//console.log("Network " + i + " did not produce a mesh for MIDI note ", midiNote);
 					continue;
 				}
+
+				previousNoteMesh = mesh.clone();
 
 				totalMesh.add(mesh);
 			}

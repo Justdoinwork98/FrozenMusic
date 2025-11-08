@@ -32,6 +32,8 @@ function getNodeClassColor(nodeClass) {
 			return '#00ffcc';
 		case 'midi':
 			return '#cc00ff';
+		case 'logic':
+			return '#fc831aff';
 		default:
 			return '#ffffff';
 	}

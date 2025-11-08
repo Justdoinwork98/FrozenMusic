@@ -1,6 +1,7 @@
 const NODE_INPUT_OUTPUT_TYPES = {
 	mesh: "Mesh",
 	number: "Number",
+	boolean: "Boolean",
 }
 
 
@@ -90,7 +91,7 @@ class Node {
 	}
 
 	// Find the value of an input by evaluating the connected node
-	getInput(network, inputIndex, midiData) {
+	getInput(network, inputIndex, data) {
 		if (inputIndex < 0 || inputIndex >= this.inputs.length) {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}
@@ -103,13 +104,13 @@ class Node {
 		}
 
 		const inputNode = network.nodes.get(inputConnection.nodeId);
-		const inputValue = inputNode.getOutput(network, midiData, inputConnection.outputIndex);
+		const inputValue = inputNode.getOutput(network, data, inputConnection.outputIndex);
 
 		return inputValue;
 	}
 
 	// Evaluate the node and return the output data for the given output index
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		if (outputIndex < 0 || outputIndex >= this.outputs.length) {
 			throw new Error('Invalid output index: ' + outputIndex);
 		}

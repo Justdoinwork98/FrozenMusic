@@ -1,6 +1,50 @@
 const { Node, InputPoint, OutputPoint } = require('./node.js');
 const { Mesh } = require('../mesh.js');
 
+class PreviousNoteMeshNode extends Node {
+	constructor() {
+		const inputs = [];
+		const outputs = [
+			new OutputPoint("Previous Mesh", "Mesh"),
+		];
+		super("Previous Note Mesh", inputs, outputs);
+		this.nodeClass = 'geometry';
+	}
+
+	getOutput(network, data, outputIndex) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for PreviousNoteMeshNode: ' + outputIndex);
+		}
+
+		const previousNote = data.previousMesh;
+		return previousNote;
+	}
+}
+
+class CombineMeshNode extends Node {
+	constructor() {
+		const inputs = [
+			new InputPoint("Mesh 1", "Mesh", 0),
+			new InputPoint("Mesh 2", "Mesh", 1),
+		];
+		const outputs = [
+			new OutputPoint("Combined Mesh", "Mesh"),
+		];
+		super("Combine Mesh", inputs, outputs);
+		this.nodeClass = 'geometry';
+	}
+
+	getOutput(network, data, outputIndex) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for CombineMeshNode: ' + outputIndex);
+		}
+
+		const mesh1 = this.getInput(network, 0, data);
+		const mesh2 = this.getInput(network, 1, data);
+		return Mesh.combine(mesh1, mesh2);
+	}
+}
+
 class MeshNode extends Node {
 	constructor(name) {
 		const inputs = [
@@ -20,12 +64,12 @@ class CubeNode extends MeshNode {
 	}
 
 	// Get the inputs and return the output Mesh
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		if (outputIndex !== 0) {
 			throw new Error('Invalid output index for CubeNode: ' + outputIndex);
 		}
 
-		const subdivisionLevel = this.getInput(network, 0, midiData);
+		const subdivisionLevel = this.getInput(network, 0, data);
 
 		// Create a simple cube mesh
 		const mesh = Mesh.cube(1, subdivisionLevel);
@@ -39,7 +83,7 @@ class SphereNode extends MeshNode {
 	}
 
 	// Get the inputs and return the output Mesh
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		if (outputIndex !== 0) {
 			throw new Error('Invalid output index for SphereNode: ' + outputIndex);
 		}
@@ -52,4 +96,6 @@ class SphereNode extends MeshNode {
 module.exports = {
 	CubeNode,
 	SphereNode,
+	CombineMeshNode,
+	PreviousNoteMeshNode
 };
