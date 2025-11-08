@@ -39,6 +39,63 @@ function getNodeClassColor(nodeClass) {
 	}
 }
 
+function getNodeTooltip(nodeName) {
+	switch (nodeName) {
+		case 'Cube':
+			return 'Generates a cube mesh with a specified subdivision level.';
+		case 'Sphere':
+			return 'Generates a sphere mesh with a specified subdivision level.';
+		case 'Combine meshes':
+			return 'Combines two input meshes into a single mesh.';
+		case 'Previous Note Mesh':
+			return 'Outputs the mesh generated for the previous MIDI note.';
+
+		case 'Translate':
+			return 'Translates the input mesh by specified x, y, z offsets.';
+		case 'Scale':
+			return 'Scales the input mesh by specified x, y, z factors.';
+		case 'Rotate':
+			return 'Rotates the input mesh around a specified axis by a given angle.';
+
+		case 'Add':
+			return 'Adds two numbers together.';
+		case 'Subtract':
+			return 'Subtracts the second number from the first.';
+		case 'Multiply':
+			return 'Multiplies two numbers.';
+		case 'Divide':
+			return 'Divides the first number by the second.';
+		case 'Map':
+			return 'Maps a number from one range to another.';
+		case 'Clamp':
+			return 'Clamps a number to be within a specified range.';
+		case 'Random':
+			return 'Generates a random number between a specified min and max.';
+		case 'Sine':
+			return 'Calculates the sine of an angle (in degrees).';
+		case 'Cosine':
+			return 'Calculates the cosine of an angle (in degrees).';
+		case 'Floor':
+			return 'Rounds a number down to the nearest integer.';
+		case 'Ceil':
+			return 'Rounds a number up to the nearest integer.';
+		case 'Absolute':
+			return 'Returns the absolute value of a number, removing any negative sign.';
+		case 'Modulo':
+			return 'Calculates the remainder of division between two numbers.';
+
+		case 'MIDI data':
+			return 'Provides access to MIDI input data such as note number, velocity, and timing.';
+
+		case 'Number Comparison':
+			return 'Compares two numbers and outputs boolean results for various comparison operations.';
+		case 'Switch':
+			return 'Outputs one of two inputs based on a boolean condition.';
+		default:
+			return '';
+	}
+}
+
 const ModifierNode = ({ data, id, selected }) => {
 	// Extract metadata
 	const inputs = data.inputs || [];
@@ -61,7 +118,7 @@ const ModifierNode = ({ data, id, selected }) => {
 				boxShadow: `0 0 10px ${nodeColor}40`,
 			} : { height: nodeHeight }}
 		>
-			<strong className="node-label" style={{ backgroundColor: getNodeClassColor(data.nodeClass), boxShadow: `0 2px 5px ${nodeColor}30` }}>
+			<strong title={getNodeTooltip(label)} className="node-label" style={{ backgroundColor: getNodeClassColor(data.nodeClass), boxShadow: `0 2px 5px ${nodeColor}30` }}>
 				{label}
 			</strong>
 			<div className="node-content">
