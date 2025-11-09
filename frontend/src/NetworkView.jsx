@@ -49,6 +49,8 @@ function getNodeTooltip(nodeName) {
 			return 'Generates a plane mesh with a specified subdivision level.';
 		case 'Cylinder':
 			return 'Generates a cylinder mesh with a specified subdivision level.';
+		case 'Custom Mesh':
+			return 'Loads a custom mesh from a specified file path.';
 
 		case 'Combine meshes':
 			return 'Combines two input meshes into a single mesh.';
@@ -175,23 +177,58 @@ const ModifierNode = ({ data, id, selected }) => {
 							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
 							{/* Show input field only if not connected */}
-							{!input.isConnected && !input.isInputRequired && (
-								<input
-									type="text"
-									placeholder="value"
-									className ="input-constant-field"
-									defaultValue={input.defaultValue}
-									onChange={(e) => {
-										// Send the updated constant value to the backend
-										const options = {
-											nodeId: parseInt(id),
-											inputIndex: i,
-											value: parseFloat(e.target.value) || 0,
-										};
-										window.electronAPI.updateNodeInputDefault(options);
-									}}
-								/>
+							{!input.isConnected && (!input.isInputRequired || input.type==="MeshPath") && (
+								<>
+									{input.type === "Number" && (
+										<input
+											type="number"
+											step="any"
+											className="input-constant-field"
+											defaultValue={input.defaultValue}
+											onChange={(e) => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: parseFloat(e.target.value) || 0,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										/>
+									)}
+
+									{input.type === "Boolean" && (
+										<input
+											type="checkbox"
+											defaultChecked={!!input.defaultValue}
+											onChange={(e) => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: e.target.checked,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										/>
+									)}
+
+									{input.type === "MeshPath" && (
+										<button
+											className="mesh-path-button"
+											onClick={async () => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: null,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										>
+											{input.defaultValue ? "Change Mesh" : "Choose Mesh"}
+										</button>
+									)}
+								</>
 							)}
+
 						</div>
 					);
 				})}
@@ -290,11 +327,13 @@ export default function NetworkView() {
 							isConnected: input.connection != null,
 							isInputRequired: input.defaultValue == null, // If there's no default value, input is required
 							defaultValue: input.defaultValue,
+							type: input.type,
 						})),
 						outputs: node.outputs.map((output) => output.name),
 						nodeClass: node.nodeClass,
 					}
 				};
+				console.log("Updated node:", newNode);
 				updatedNodes.push(newNode);
 			}
 

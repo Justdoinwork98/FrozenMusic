@@ -1,13 +1,13 @@
-const { Node, InputPoint, OutputPoint } = require('./node.js');
+const { Node, InputPoint, OutputPoint, NODE_INPUT_OUTPUT_TYPES } = require('./node.js');
 const { Mesh } = require('../mesh.js');
 
 class PreviousNoteMeshNode extends Node {
 	constructor() {
 		const inputs = [
-			new InputPoint("Else", "Mesh", null),
+			new InputPoint("Else", NODE_INPUT_OUTPUT_TYPES.mesh, null),
 		];
 		const outputs = [
-			new OutputPoint("Previous Mesh", "Mesh"),
+			new OutputPoint("Previous Mesh", NODE_INPUT_OUTPUT_TYPES.mesh),
 		];
 		super("Previous Note Mesh", inputs, outputs);
 		this.nodeClass = 'geometry';
@@ -26,6 +26,28 @@ class PreviousNoteMeshNode extends Node {
 		}
 
 		return previousNote;
+	}
+}
+
+class CustomMeshNode extends Node {
+	constructor() {
+		const inputs = [
+			new InputPoint("Path", NODE_INPUT_OUTPUT_TYPES.meshPath)
+		];
+		const outputs = [
+			new OutputPoint("Custom Mesh", NODE_INPUT_OUTPUT_TYPES.mesh),
+		];
+		super("Custom Mesh", inputs, outputs);
+		this.nodeClass = 'geometry';
+	}
+
+	getOutput(network, data, outputIndex) {
+		if (outputIndex !== 0) {
+			throw new Error('Invalid output index for CustomMeshNode: ' + outputIndex);
+		}
+		const meshPath = this.getInput(network, 0, data);
+		const mesh = Mesh.loadFromPath(meshPath);
+		return mesh;
 	}
 }
 
@@ -149,4 +171,5 @@ module.exports = {
 	PreviousNoteMeshNode,
 	PlaneNode,
 	CylinderNode,
+	CustomMeshNode
 };

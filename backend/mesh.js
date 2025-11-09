@@ -1,8 +1,13 @@
+const OBJFile = require('obj-file-parser');
+const fs = require('fs');
+
 class Mesh {
 	constructor(vertices = [], tris = []) {
 		this.vertices = vertices;
 		this.tris = tris;
 	}
+
+	static meshCache = new Map(); // path -> Mesh
 
 	add(otherMesh) {
 		this.vertices = this.vertices.concat(otherMesh.vertices);
@@ -250,6 +255,54 @@ class Mesh {
 
 		return new Mesh(vertices, tris);
 	}
+
+	static loadFromPath(path) {
+
+		if (Mesh.meshCache.has(path)) {
+			return Mesh.meshCache.get(path).clone();
+		}
+
+		// Load mesh from file path
+		const mesh = new Mesh();
+
+		// Get file contents
+		let fileContents = fs.readFileSync(path, 'utf-8');
+
+		const objFile = new OBJFile(fileContents);
+		const parsed = objFile.parse();
+
+		// Load vertices
+		for (const v of parsed.models[0].vertices) {
+			mesh.vertices.push({ x: v.x, y: v.y, z: v.z });
+		}
+
+		// Load faces (triangles only)
+		for (const face of parsed.models[0].faces) {
+			if (face.vertices.length === 3) {
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[1].vertexIndex - 1,
+					v3: face.vertices[2].vertexIndex - 1,
+				});
+			}
+			if (face.vertices.length === 4) {
+				// Split quad into two triangles
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[1].vertexIndex - 1,
+					v3: face.vertices[2].vertexIndex - 1,
+				});
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[2].vertexIndex - 1,
+					v3: face.vertices[3].vertexIndex - 1,
+				});
+			}
+		}
+
+		Mesh.meshCache.set(path, mesh);
+		return mesh;
+	}
 }
 
-export { Mesh };
+module.exports = { Mesh };

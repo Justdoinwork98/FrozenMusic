@@ -219,7 +219,7 @@
               "name": "Mesh Input",
               "type": "Mesh",
               "connection": {
-                "nodeId": 7,
+                "nodeId": 25,
                 "outputIndex": 0
               },
               "defaultValue": null
@@ -284,6 +284,29 @@
             {
               "name": "Mesh Output",
               "type": "Mesh",
+              "connections": []
+            }
+          ],
+          "position": {
+            "x": -171.03868127434686,
+            "y": -133.30510939546718
+          }
+        },
+        {
+          "id": 25,
+          "name": "Custom Mesh",
+          "inputs": [
+            {
+              "name": "Path",
+              "type": "MeshPath",
+              "connection": null,
+              "defaultValue": "C:\\Git\\FrozenMusic\\monkey.obj"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Custom Mesh",
+              "type": "Mesh",
               "connections": [
                 {
                   "nodeId": 6,
@@ -293,8 +316,8 @@
             }
           ],
           "position": {
-            "x": -161.68579697670873,
-            "y": -35.099824270266716
+            "x": -191.58577195292582,
+            "y": -15.76246728007807
           }
         }
       ]

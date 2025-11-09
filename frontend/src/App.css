@@ -52,7 +52,7 @@ body,
 .app-grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	grid-template-rows: 20px 40% 60%;
+	grid-template-rows: 20px 50% 50%;
 	grid-template-areas:
 		"toolbar"
 		"networkview"
