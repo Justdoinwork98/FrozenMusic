@@ -39,6 +39,19 @@ function getNodeClassColor(nodeClass) {
 	}
 }
 
+function getConnectionColor(connectionType) {
+	switch (connectionType) {
+		case 'Mesh':
+			return '#12c20cff';
+		case 'Number':
+			return '#00ccff';
+		case 'Boolean':
+			return '#fc831aff';
+		default:
+			return '#ffffff';
+	}
+}
+
 function getNodeTooltip(nodeName) {
 	switch (nodeName) {
 		case 'Cube':
@@ -144,12 +157,12 @@ const ModifierNode = ({ data, id, selected }) => {
 							width: "100%",
 						}}
 					>
-						<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output}</span>
+						<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output.name}</span>
 						<Handle
 							type="source"
 							position={Position.Right}
 							id={`out-${i}`}
-							style={{ background: "#9cf", right: -12 }}
+							style={{ background: getConnectionColor(output.type), right: -12 }}
 						/>
 					</div>
 				))}
@@ -172,7 +185,7 @@ const ModifierNode = ({ data, id, selected }) => {
 								type="target"
 								position={Position.Left}
 								id={getHandleId(false, i)}
-								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff": "#fc9", left: -12 }}
+								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff" : getConnectionColor(input.type), left: -12 }}
 							/>
 							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
@@ -329,17 +342,17 @@ export default function NetworkView() {
 							defaultValue: input.defaultValue,
 							type: input.type,
 						})),
-						outputs: node.outputs.map((output) => output.name),
+						outputs: node.outputs.map((output) => ({ name: output.name, type: output.type })),
 						nodeClass: node.nodeClass,
 					}
 				};
-				console.log("Updated node:", newNode);
 				updatedNodes.push(newNode);
 			}
 
 			// Now we need to create edges based on connections
 			for (const node of nodeList) {
 				node.outputs.forEach((output, outputIndex) => {
+					const outputType = output.type;
 					output.connections.forEach((conn) => {
 						const edgeId = `e${node.id}-${conn.nodeId}-out${outputIndex}-in${conn.inputIndex}`;
 						updatedEdges.push({
@@ -348,6 +361,7 @@ export default function NetworkView() {
 							target: conn.nodeId.toString(),
 							sourceHandle: getHandleId(true, outputIndex),
 							targetHandle: getHandleId(false, conn.inputIndex),
+							style: { stroke: getConnectionColor(outputType), strokeWidth: 2 },
 						});
 					});
 				});
