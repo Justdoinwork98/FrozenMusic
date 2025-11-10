@@ -20,9 +20,6 @@
 	font-family: sans-serif;
 }
 
-.modifier-node.selected {
-}
-
 .context-menu {
 	position: absolute;
 	background: black;
@@ -107,4 +104,18 @@
 	border: 2px solid rgb(214, 137, 36);
 	background: #444;
 	font-weight: bold;
+}
+
+.mesh-path-button {
+	margin-left: 6px;
+	cursor: pointer;
+	padding: 2px 6px;
+	border: 1px solid #666;
+	background: #444;
+	color: var(--color-text);
+	border-radius: 4px;
+}
+
+.mesh-path-button:hover {
+	background: #555;
 }

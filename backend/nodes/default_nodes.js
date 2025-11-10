@@ -10,8 +10,8 @@ class OutputNode extends Node {
 		this.nodeClass = 'output';
 	}
 
-	getOutput(network, midiData, outputIndex) {
-		const meshInput = this.getInput(network, 0, midiData);
+	getOutput(network, data, outputIndex) {
+		const meshInput = this.getInput(network, 0, data);
 
 		// TODO empty check
 		return meshInput;
@@ -26,15 +26,18 @@ class MidiInputNode extends Node {
 			new OutputPoint("Velocity", "Number"),
 			new OutputPoint("Duration", "Number"),
 			new OutputPoint("Start Time", "Number"),
+			new OutputPoint("Note Index", "Number"),
 		];
 		super("MIDI data", inputs, outputs);
 		this.nodeClass = 'midi';
 	}
 
-	getOutput(network, midiData, outputIndex) {
-		if (!midiData) {
+	getOutput(network, data, outputIndex) {
+		if (!data || !data.midiData) {
 			throw new Error('No MIDI data available');
 		}
+
+		const midiData = data.midiData;
 
 		const outputPoint = this.outputs[outputIndex];
 		switch (outputIndex) {
@@ -46,6 +49,8 @@ class MidiInputNode extends Node {
 				return midiData.duration;
 			case 3: // Start Time
 				return midiData.startTime;
+			case 4: // Note Index
+				return midiData.noteIndex;
 		}
 		throw new Error('Invalid output index for MidiInputNode: ' + outputIndex);
 	}

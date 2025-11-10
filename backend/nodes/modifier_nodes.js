@@ -30,9 +30,9 @@ class TranslateModifier extends Modifier {
 	}
 	
 	// Get the inputs and return the output Mesh
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		// TODO do we need to make a clone here?
-		let mesh = this.getInput(network, 0, midiData);
+		let mesh = this.getInput(network, 0, data);
 		if (!mesh) {
 			throw new Error('Mesh input is not connected');
 		}
@@ -41,9 +41,9 @@ class TranslateModifier extends Modifier {
 			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
 		}
 
-		const xInputValue = this.getInput(network, 1, midiData);
-		const yInputValue = this.getInput(network, 2, midiData);
-		const zInputValue = this.getInput(network, 3, midiData);
+		const xInputValue = this.getInput(network, 1, data);
+		const yInputValue = this.getInput(network, 2, data);
+		const zInputValue = this.getInput(network, 3, data);
 
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
@@ -74,9 +74,9 @@ class ScaleModifier extends Modifier {
 	}
 	
 	// Get the inputs and return the output Mesh
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		// TODO do we need to make a clone here?
-		let mesh = this.getInput(network, 0, midiData);
+		let mesh = this.getInput(network, 0, data);
 		if (!mesh) {
 			throw new Error('Mesh input is not connected');
 		}
@@ -85,9 +85,9 @@ class ScaleModifier extends Modifier {
 			throw new Error('Invalid output index for TranslateModifier: ' + outputIndex);
 		}
 
-		const xInputValue = this.getInput(network, 1, midiData);
-		const yInputValue = this.getInput(network, 2, midiData);
-		const zInputValue = this.getInput(network, 3, midiData);
+		const xInputValue = this.getInput(network, 1, data);
+		const yInputValue = this.getInput(network, 2, data);
+		const zInputValue = this.getInput(network, 3, data);
 
 		mesh.vertices = mesh.vertices.map(v => {
 			return {
@@ -118,20 +118,20 @@ class RotateModifier extends Modifier {
 		this.name = "Rotate";
 	}
 
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		// TODO do we need to make a clone here?
-		let mesh = this.getInput(network, 0, midiData);
+		let mesh = this.getInput(network, 0, data);
 		if (!mesh) {
 			throw new Error('Mesh input is not connected');
 		}
 		if (outputIndex !== 0) {
 			throw new Error('Invalid output index for RotateModifier: ' + outputIndex);
 		}
-		const angleDeg = this.getInput(network, 1, midiData);
+		const angleDeg = this.getInput(network, 1, data);
 		const angleRad = angleDeg * Math.PI / 180;
-		const axisX = this.getInput(network, 2, midiData);
-		const axisY = this.getInput(network, 3, midiData);
-		const axisZ = this.getInput(network, 4, midiData);
+		const axisX = this.getInput(network, 2, data);
+		const axisY = this.getInput(network, 3, data);
+		const axisZ = this.getInput(network, 4, data);
 
 		// Normalize rotation axis
 		const length = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
@@ -195,20 +195,20 @@ class ArrayModifier extends Modifier {
 		this.name = "Array";
 	}
 
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		// TODO do we need to make a clone here?
-		let mesh = this.getInput(network, 0, midiData);
+		let mesh = this.getInput(network, 0, data);
 		if (!mesh) {
 			throw new Error('Mesh input is not connected');
 		}
 		if (outputIndex !== 0) {
 			throw new Error('Invalid output index for ArrayModifier: ' + outputIndex);
 		}
-		const count = Math.floor(this.getInput(network, 1, midiData));
-		const distance = this.getInput(network, 2, midiData);
-		const axisX = this.getInput(network, 3, midiData);
-		const axisY = this.getInput(network, 4, midiData);
-		const axisZ = this.getInput(network, 5, midiData);
+		const count = Math.floor(this.getInput(network, 1, data));
+		const distance = this.getInput(network, 2, data);
+		const axisX = this.getInput(network, 3, data);
+		const axisY = this.getInput(network, 4, data);
+		const axisZ = this.getInput(network, 5, data);
 
 		for (let i = 0; i < count; i++) {
 			const offsetX = axisX * distance * i;
@@ -237,6 +237,7 @@ class ArrayModifier extends Modifier {
 	}
 }
 
+// TODO make this work properly
 class SmoothModifier extends Modifier {
 
 	constructor() {

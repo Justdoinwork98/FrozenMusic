@@ -123,19 +123,18 @@ export default function ModelPreview() {
 		};
 	}, []);
 
-	// Update the preview model whenever previewModel changes
-	useEffect(() => {
+	const handleMeshBuffers = (meshes) => {
 		const scene = sceneRef.current;
 		if (!scene) return;
 
-		// Remove old model if present
+		// Remove previous model
 		if (modelRef.current) {
-			for (const model of modelRef.current) {
-				scene.remove(model);
-				model.traverse(obj => {
+			for (const m of modelRef.current) {
+				scene.remove(m);
+				m.traverse(obj => {
 					if (obj.geometry) obj.geometry.dispose();
 					if (obj.material) {
-						if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+						if (Array.isArray(obj.material)) obj.material.forEach(mat => mat.dispose());
 						else obj.material.dispose();
 					}
 				});
@@ -143,51 +142,35 @@ export default function ModelPreview() {
 			modelRef.current = [];
 		}
 
-		if (wireframeRef.current) {
-			scene.remove(wireframeRef.current);
-			wireframeRef.current = null;
-		}
-
-		if (!previewModel) return;
-
-		// previewModels is an array of { vertices: [], tris: [] }
 		modelRef.current = [];
-		for (const previewMesh of previewModel) {
-			const geometry = new THREE.BufferGeometry();
-			const vertices = new Float32Array(previewMesh.vertices.length * 3);
-			previewMesh.vertices.forEach((v, i) => {
-				vertices[i * 3] = v.x;
-				vertices[i * 3 + 1] = v.y;
-				vertices[i * 3 + 2] = v.z;
-			});
-			geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-			const indices = new Uint32Array(previewMesh.tris.length * 3);
-			previewMesh.tris.forEach((t, i) => {
-				indices[i * 3] = t.v1;
-				indices[i * 3 + 1] = t.v2;
-				indices[i * 3 + 2] = t.v3;
-			});
-			geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-			geometry.computeVertexNormals();
-			const material = new THREE.MeshStandardMaterial({ color: 0x0077ff, side: THREE.DoubleSide });
-			const mesh = new THREE.Mesh(geometry, material);
-			scene.add(mesh);
-			modelRef.current.push(mesh);
 
-			// Render wireframe
+		meshes.forEach(mesh => {
+			const geometry = new THREE.BufferGeometry();
+			geometry.setAttribute('position', new THREE.BufferAttribute(mesh.vertices, 3));
+			geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+			geometry.computeVertexNormals();
+
+			const material = new THREE.MeshStandardMaterial({ color: 0x0077ff, side: THREE.DoubleSide });
+			const meshObj = new THREE.Mesh(geometry, material);
+			scene.add(meshObj);
+			modelRef.current.push(meshObj);
+
 			if (drawWireframe) {
 				const wireframe = new THREE.WireframeGeometry(geometry);
 				const line = new THREE.LineSegments(wireframe);
-				line.material.depthTest = false; // Render on top
+				line.material.depthTest = false;
 				line.material.opacity = 0.5;
 				line.material.transparent = true;
 				scene.add(line);
 				wireframeRef.current = line;
 			}
-		}
+		});
+	};
 
+	useEffect(() => {
+		window.electronAPI.onPreviewUpdate(handleMeshBuffers);
+	}, []);
 
-	}, [previewModel]);
 
 	return (
 		<div ref={containerRef} className="w-full h-full relative overflow-hidden" />

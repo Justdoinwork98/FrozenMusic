@@ -1,6 +1,11 @@
+const fs = require('fs');
+const { dialog } = require('electron');
+
 const NODE_INPUT_OUTPUT_TYPES = {
 	mesh: "Mesh",
 	number: "Number",
+	boolean: "Boolean",
+	meshPath: "MeshPath",
 }
 
 
@@ -11,6 +16,27 @@ class InputPoint {
 		this.defaultValue = defaultValue;
 		// What this input is connected to (either null or a nodeId, outputIndex)
 		this.connection = null;
+	}
+
+	setDefaultValue(value) {
+		// For mesh paths, open a file dialog to choose a mesh file
+		if (this.type === NODE_INPUT_OUTPUT_TYPES.meshPath) {
+			// Open a file dialog to select a mesh path
+			const dialogOptions = {
+				properties: ["openFile"],
+				filters: [{ name: "3D Model Files", extensions: ["obj", "stl"] }],
+				title: "Select Mesh File",
+			};
+
+			const result = dialog.showOpenDialogSync(dialogOptions);
+
+			if (result && result.length > 0) {
+				this.defaultValue = result[0];
+			}
+			return;
+		}
+
+		this.defaultValue = value;
 	}
 
 	isConnected() {
@@ -90,7 +116,7 @@ class Node {
 	}
 
 	// Find the value of an input by evaluating the connected node
-	getInput(network, inputIndex, midiData) {
+	getInput(network, inputIndex, data) {
 		if (inputIndex < 0 || inputIndex >= this.inputs.length) {
 			throw new Error('Invalid input index: ' + inputIndex);
 		}
@@ -103,13 +129,13 @@ class Node {
 		}
 
 		const inputNode = network.nodes.get(inputConnection.nodeId);
-		const inputValue = inputNode.getOutput(network, midiData, inputConnection.outputIndex);
+		const inputValue = inputNode.getOutput(network, data, inputConnection.outputIndex);
 
 		return inputValue;
 	}
 
 	// Evaluate the node and return the output data for the given output index
-	getOutput(network, midiData, outputIndex) {
+	getOutput(network, data, outputIndex) {
 		if (outputIndex < 0 || outputIndex >= this.outputs.length) {
 			throw new Error('Invalid output index: ' + outputIndex);
 		}

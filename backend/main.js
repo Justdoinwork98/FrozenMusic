@@ -32,7 +32,7 @@ function createWindow() {
 	if (process.env.NODE_ENV === 'development') {
 		// Wait until Vite server is ready
 		win.loadURL('http://localhost:5173');
-		//win.webContents.openDevTools(); // optional
+		win.webContents.openDevTools(); // optional
 	} else {
 		win.loadFile(path.join(__dirname, '../frontend/dist/index.html'));
 	}

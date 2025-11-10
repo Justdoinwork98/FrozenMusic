@@ -1,8 +1,13 @@
+const OBJFile = require('obj-file-parser');
+const fs = require('fs');
+
 class Mesh {
 	constructor(vertices = [], tris = []) {
 		this.vertices = vertices;
 		this.tris = tris;
 	}
+
+	static meshCache = new Map(); // path -> Mesh
 
 	add(otherMesh) {
 		this.vertices = this.vertices.concat(otherMesh.vertices);
@@ -15,10 +20,9 @@ class Mesh {
 	}
 
 	clone() {
-		return new Mesh(
-			this.vertices.slice(0),
-			this.tris.slice(0)
-		);
+		const newVertices = this.vertices.map(v => ({ x: v.x, y: v.y, z: v.z }));
+		const newTris = this.tris.map(t => ({ v1: t.v1, v2: t.v2, v3: t.v3 }));
+		return new Mesh(newVertices, newTris);
 	}
 
 	subdivide(iterations=1) {
@@ -78,6 +82,12 @@ class Mesh {
 		this.tris = newTris;
 
 		this.subdivide(iterations - 1);
+	}
+
+	static combine(mesh1, mesh2) {
+		const combinedMesh = mesh1.clone();
+		combinedMesh.add(mesh2);
+		return combinedMesh;
 	}
 
 	static cube(size = 1, subdivisions = 2) {
@@ -177,6 +187,122 @@ class Mesh {
 
 		return mesh;
 	}
+
+	static plane(width = 1, depth = 1, subdivisions = 2) {
+		const halfWidth = width / 2;
+		const halfDepth = depth / 2;
+
+		const vertices = [
+			{ x: -halfWidth, y: 0, z: -halfDepth },
+			{ x: halfWidth, y: 0, z: -halfDepth },
+			{ x: halfWidth, y: 0, z: halfDepth },
+			{ x: -halfWidth, y: 0, z: halfDepth },
+		];
+		const tris = [
+			{ v1: 0, v2: 1, v3: 2 },
+			{ v1: 0, v2: 2, v3: 3 },
+		];
+		let plane = new Mesh(vertices, tris);
+		plane.subdivide(subdivisions); // Subdivide for more detail
+		return plane;
+	}
+
+	static cylinder(diameter = 1, height = 1, subdivisions=2) {
+		const radius = diameter / 2;
+		// num segments = 6 * 2^subdivisions (6 default, doubles each subdivision)
+		const segments = Math.max(3, Math.floor(6 * Math.pow(2, subdivisions))); // Increase segments with subdivisions
+		const vertices = [];
+		const tris = [];
+
+		// Create top and bottom center vertices
+		vertices.push({ x: 0, y: height / 2, z: 0 }); // Top center
+		vertices.push({ x: 0, y: -height / 2, z: 0 }); // Bottom center
+		const topCenterIndex = 0;
+		const bottomCenterIndex = 1;
+
+		// Create circle vertices
+		for (let i = 0; i < segments; i++) {
+			const angle = (i / segments) * Math.PI * 2;
+			const x = Math.cos(angle) * radius;
+			const z = Math.sin(angle) * radius;
+			vertices.push({ x: x, y: height / 2, z: z }); // Top edge
+			vertices.push({ x: x, y: -height / 2, z: z }); // Bottom edge
+		}
+
+		// Create top and bottom faces
+		for (let i = 0; i < segments; i++) {
+			// Top face
+			const topEdgeIndex = 2 + i * 2;
+			const nextTopEdgeIndex = 2 + ((i + 1) % segments) * 2;
+			tris.push({ v1: topCenterIndex, v2: nextTopEdgeIndex, v3: topEdgeIndex });
+
+			// Bottom face
+			const bottomEdgeIndex = 2 + i * 2 + 1;
+			const nextBottomEdgeIndex = 2 + ((i + 1) % segments) * 2 + 1;
+			tris.push({ v1: bottomCenterIndex, v2: bottomEdgeIndex, v3: nextBottomEdgeIndex });
+		}
+
+		// Create side faces
+		for (let i = 0; i < segments; i++) {
+			const topEdgeIndex = 2 + i * 2;
+			const bottomEdgeIndex = 2 + i * 2 + 1;
+			const nextTopEdgeIndex = 2 + ((i + 1) % segments) * 2;
+			const nextBottomEdgeIndex = 2 + ((i + 1) % segments) * 2 + 1;
+			tris.push({ v1: topEdgeIndex, v2: nextTopEdgeIndex, v3: bottomEdgeIndex });
+			tris.push({ v1: bottomEdgeIndex, v2: nextTopEdgeIndex, v3: nextBottomEdgeIndex });
+		}
+
+		return new Mesh(vertices, tris);
+	}
+
+	static loadFromPath(path) {
+
+		if (Mesh.meshCache.has(path)) {
+			const mesh = Mesh.meshCache.get(path).clone();
+			return mesh;
+		}
+
+		// Load mesh from file path
+		const mesh = new Mesh();
+
+		// Get file contents
+		let fileContents = fs.readFileSync(path, 'utf-8');
+
+		const objFile = new OBJFile(fileContents);
+		const parsed = objFile.parse();
+
+		// Load vertices
+		for (const v of parsed.models[0].vertices) {
+			mesh.vertices.push({ x: v.x, y: v.y, z: v.z });
+		}
+
+		// Load faces (triangles only)
+		for (const face of parsed.models[0].faces) {
+			if (face.vertices.length === 3) {
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[1].vertexIndex - 1,
+					v3: face.vertices[2].vertexIndex - 1,
+				});
+			}
+			if (face.vertices.length === 4) {
+				// Split quad into two triangles
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[1].vertexIndex - 1,
+					v3: face.vertices[2].vertexIndex - 1,
+				});
+				mesh.tris.push({
+					v1: face.vertices[0].vertexIndex - 1,
+					v2: face.vertices[2].vertexIndex - 1,
+					v3: face.vertices[3].vertexIndex - 1,
+				});
+			}
+		}
+
+		Mesh.meshCache.set(path, mesh);
+		return mesh.clone();
+	}
 }
 
-export { Mesh };
+module.exports = { Mesh };

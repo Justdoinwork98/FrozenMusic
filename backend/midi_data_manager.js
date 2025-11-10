@@ -80,7 +80,8 @@ class MidiDataManager {
 								normalizedNote,
 								startTime,
 								duration,
-								velocity
+								velocity,
+								noteIndex: processedTrack.notes.length
 							});
 							activeNotes.delete(note);
 						}

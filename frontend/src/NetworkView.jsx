@@ -32,8 +32,87 @@ function getNodeClassColor(nodeClass) {
 			return '#00ffcc';
 		case 'midi':
 			return '#cc00ff';
+		case 'logic':
+			return '#fc831aff';
 		default:
 			return '#ffffff';
+	}
+}
+
+function getConnectionColor(connectionType) {
+	switch (connectionType) {
+		case 'Mesh':
+			return '#12c20cff';
+		case 'Number':
+			return '#00ccff';
+		case 'Boolean':
+			return '#fc831aff';
+		default:
+			return '#ffffff';
+	}
+}
+
+function getNodeTooltip(nodeName) {
+	switch (nodeName) {
+		case 'Cube':
+			return 'Generates a cube mesh with a specified subdivision level.';
+		case 'Sphere':
+			return 'Generates a sphere mesh with a specified subdivision level.';
+		case 'Plane':
+			return 'Generates a plane mesh with a specified subdivision level.';
+		case 'Cylinder':
+			return 'Generates a cylinder mesh with a specified subdivision level.';
+		case 'Custom Mesh':
+			return 'Loads a custom mesh from a specified file path.';
+
+		case 'Combine meshes':
+			return 'Combines two input meshes into a single mesh.';
+		case 'Previous Note Mesh':
+			return 'Outputs the mesh generated for the previous MIDI note. If no previous note exists, outputs the "Else" input mesh.';
+
+		case 'Translate':
+			return 'Translates the input mesh by specified x, y, z offsets.';
+		case 'Scale':
+			return 'Scales the input mesh by specified x, y, z factors.';
+		case 'Rotate':
+			return 'Rotates the input mesh around a specified axis by a given angle.';
+
+		case 'Add':
+			return 'Adds two numbers together.';
+		case 'Subtract':
+			return 'Subtracts the second number from the first.';
+		case 'Multiply':
+			return 'Multiplies two numbers.';
+		case 'Divide':
+			return 'Divides the first number by the second.';
+		case 'Map':
+			return 'Maps a number from one range to another.';
+		case 'Clamp':
+			return 'Clamps a number to be within a specified range.';
+		case 'Random':
+			return 'Generates a random number between a specified min and max.';
+		case 'Sine':
+			return 'Calculates the sine of an angle (in degrees).';
+		case 'Cosine':
+			return 'Calculates the cosine of an angle (in degrees).';
+		case 'Floor':
+			return 'Rounds a number down to the nearest integer.';
+		case 'Ceil':
+			return 'Rounds a number up to the nearest integer.';
+		case 'Absolute':
+			return 'Returns the absolute value of a number, removing any negative sign.';
+		case 'Modulo':
+			return 'Calculates the remainder of division between two numbers.';
+
+		case 'MIDI data':
+			return 'Provides access to MIDI input data such as note number, velocity, and timing.';
+
+		case 'Number Comparison':
+			return 'Compares two numbers and outputs boolean results for various comparison operations.';
+		case 'Switch':
+			return 'Outputs one of two inputs based on a boolean condition.';
+		default:
+			return '';
 	}
 }
 
@@ -59,7 +138,7 @@ const ModifierNode = ({ data, id, selected }) => {
 				boxShadow: `0 0 10px ${nodeColor}40`,
 			} : { height: nodeHeight }}
 		>
-			<strong className="node-label" style={{ backgroundColor: getNodeClassColor(data.nodeClass), boxShadow: `0 2px 5px ${nodeColor}30` }}>
+			<strong title={getNodeTooltip(label)} className="node-label" style={{ backgroundColor: getNodeClassColor(data.nodeClass), boxShadow: `0 2px 5px ${nodeColor}30` }}>
 				{label}
 			</strong>
 			<div className="node-content">
@@ -78,12 +157,12 @@ const ModifierNode = ({ data, id, selected }) => {
 							width: "100%",
 						}}
 					>
-						<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output}</span>
+						<span style={{ marginRight: 6, fontSize: 12, opacity: 0.8 }}>{output.name}</span>
 						<Handle
 							type="source"
 							position={Position.Right}
 							id={`out-${i}`}
-							style={{ background: "#9cf", right: -12 }}
+							style={{ background: getConnectionColor(output.type), right: -12 }}
 						/>
 					</div>
 				))}
@@ -106,28 +185,63 @@ const ModifierNode = ({ data, id, selected }) => {
 								type="target"
 								position={Position.Left}
 								id={getHandleId(false, i)}
-								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff": "#fc9", left: -12 }}
+								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff" : getConnectionColor(input.type), left: -12 }}
 							/>
 							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
 							{/* Show input field only if not connected */}
-							{!input.isConnected && !input.isInputRequired && (
-								<input
-									type="text"
-									placeholder="value"
-									className ="input-constant-field"
-									defaultValue={input.defaultValue}
-									onChange={(e) => {
-										// Send the updated constant value to the backend
-										const options = {
-											nodeId: parseInt(id),
-											inputIndex: i,
-											value: parseFloat(e.target.value) || 0,
-										};
-										window.electronAPI.updateNodeInputDefault(options);
-									}}
-								/>
+							{!input.isConnected && (!input.isInputRequired || input.type==="MeshPath") && (
+								<>
+									{input.type === "Number" && (
+										<input
+											type="number"
+											step="any"
+											className="input-constant-field"
+											defaultValue={input.defaultValue}
+											onChange={(e) => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: parseFloat(e.target.value) || 0,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										/>
+									)}
+
+									{input.type === "Boolean" && (
+										<input
+											type="checkbox"
+											defaultChecked={!!input.defaultValue}
+											onChange={(e) => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: e.target.checked,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										/>
+									)}
+
+									{input.type === "MeshPath" && (
+										<button
+											className="mesh-path-button"
+											onClick={async () => {
+												const options = {
+													nodeId: parseInt(id),
+													inputIndex: i,
+													value: null,
+												};
+												window.electronAPI.updateNodeInputDefault(options);
+											}}
+										>
+											{input.defaultValue ? "Change Mesh" : "Choose Mesh"}
+										</button>
+									)}
+								</>
 							)}
+
 						</div>
 					);
 				})}
@@ -151,6 +265,7 @@ export default function NetworkView() {
 
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+	const [hoveredEdgeId, setHoveredEdgeId] = useState(null);
 
 	const [menuPos, setMenuPos] = useState(null);
 
@@ -179,6 +294,7 @@ export default function NetworkView() {
 	}, []);
 
 	const handleNetworkContextMenu = (e) => {
+		if (hoveredEdgeId) return; // Don't open menu if right-clicking on an edge
 		e.preventDefault();
 		setMenuPos({ x: e.clientX, y: e.clientY });
 	};
@@ -226,8 +342,9 @@ export default function NetworkView() {
 							isConnected: input.connection != null,
 							isInputRequired: input.defaultValue == null, // If there's no default value, input is required
 							defaultValue: input.defaultValue,
+							type: input.type,
 						})),
-						outputs: node.outputs.map((output) => output.name),
+						outputs: node.outputs.map((output) => ({ name: output.name, type: output.type })),
 						nodeClass: node.nodeClass,
 					}
 				};
@@ -237,6 +354,7 @@ export default function NetworkView() {
 			// Now we need to create edges based on connections
 			for (const node of nodeList) {
 				node.outputs.forEach((output, outputIndex) => {
+					const outputType = output.type;
 					output.connections.forEach((conn) => {
 						const edgeId = `e${node.id}-${conn.nodeId}-out${outputIndex}-in${conn.inputIndex}`;
 						updatedEdges.push({
@@ -245,6 +363,7 @@ export default function NetworkView() {
 							target: conn.nodeId.toString(),
 							sourceHandle: getHandleId(true, outputIndex),
 							targetHandle: getHandleId(false, conn.inputIndex),
+							style: { stroke: getConnectionColor(outputType), strokeWidth: 2 },
 						});
 					});
 				});
@@ -360,13 +479,30 @@ export default function NetworkView() {
 			onPaneClick={onPaneClick}
 			ref={ref}
 			nodes={nodes}
-			edges={edges}
+			edges={edges.map((e) => ({
+			...e,
+			style: {
+				...e.style,
+				strokeWidth: (e.id === hoveredEdgeId ? 4 : 2),
+			},
+			}))}
 			nodeTypes={nodeTypes}
 			onNodesChange={onNodesChange}
 			onEdgesChange={onEdgesChange}
 			onConnect={onConnect}
 			onEdgesDelete={onEdgesDelete}
 			fitView
+			onEdgeContextMenu={(event, edge) => {
+				event.preventDefault();
+				window.electronAPI.removeConnection({
+					fromNodeId: parseInt(edge.source),
+					outputIndex: parseInt(edge.sourceHandle.split('-')[1]),
+					toNodeId: parseInt(edge.target),
+					inputIndex: parseInt(edge.targetHandle.split('-')[1]),
+				});
+			}}
+			onEdgeMouseEnter={(e, edge) => setHoveredEdgeId(edge.id)}
+			onEdgeMouseLeave={() => setHoveredEdgeId(null)}
 			>
 			<Controls />
 			<Background variant="dots" gap={32} size={1} color="#ffffff36" />
