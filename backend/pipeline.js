@@ -141,14 +141,46 @@ class Pipeline {
 	}
 
 	runPipelineAndUpdatePreview() {
-		const outputMesh = this.runPipeline();
-		if (outputMesh == null) {
+		const outputMeshes = this.runPipeline();
+		if (outputMeshes == null) {
 			// Something was not connected properly
 			console.log("Pipeline did not produce a valid output mesh.");
 			return;
 		}
+
+		console.log("Sending preview model via transferable buffers.");
+
+		// Prepare a new array of lightweight objects for transfer
+		const transferableMeshes = outputMeshes.map(mesh => {
+			const vertices = new Float32Array(mesh.vertices.length * 3);
+			const indices = new Uint32Array(mesh.tris.length * 3);
+
+			// Fill vertices
+			mesh.vertices.forEach((v, i) => {
+				vertices[i * 3] = v.x;
+				vertices[i * 3 + 1] = v.y;
+				vertices[i * 3 + 2] = v.z;
+			});
+
+			// Fill triangle indices
+			mesh.tris.forEach((t, i) => {
+				indices[i * 3] = t.v1;
+				indices[i * 3 + 1] = t.v2;
+				indices[i * 3 + 2] = t.v3;
+			});
+
+			return { vertices, indices };
+		});
+
+		// Flatten the buffers into a single transfer list
+		const buffersToTransfer = transferableMeshes.flatMap(m => [m.vertices.buffer, m.indices.buffer]);
+
+		// Send via IPC using transfer list
+		this.windowReference.webContents.send('previewMeshBuffers', transferableMeshes, buffersToTransfer);
+
+
 		console.log("Updating preview model in frontend.");
-		this.windowReference.webContents.send('previewModelUpdate', outputMesh);
+		//this.windowReference.webContents.send('previewModelUpdate', outputMeshes);
 	}
 
 	save(filePath, saveData) {

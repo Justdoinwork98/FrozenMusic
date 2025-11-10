@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	onPossibleNodesUpdate: (callback) => ipcRenderer.on('possibleNodesUpdate', (_, data) => callback(data)),
 	onProjectNameUpdate: (callback) => ipcRenderer.on('projectNameUpdate', (_, data) => callback(data)),
 	onNumberOfTracksUpdate: (callback) => ipcRenderer.on('numberOfTracksUpdate', (_, data) => callback(data)),
+	onPreviewUpdate: (callback) => ipcRenderer.on('previewMeshBuffers', (_, data) => callback(data)),
 
 	openMidiFile: () => ipcRenderer.send("openMidiFile"),
 	requestPreviewModel: () => ipcRenderer.send("requestPreviewModel"),
