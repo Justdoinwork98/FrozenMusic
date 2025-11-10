@@ -20,10 +20,9 @@ class Mesh {
 	}
 
 	clone() {
-		return new Mesh(
-			this.vertices.slice(0),
-			this.tris.slice(0)
-		);
+		const newVertices = this.vertices.map(v => ({ x: v.x, y: v.y, z: v.z }));
+		const newTris = this.tris.map(t => ({ v1: t.v1, v2: t.v2, v3: t.v3 }));
+		return new Mesh(newVertices, newTris);
 	}
 
 	subdivide(iterations=1) {
@@ -259,7 +258,8 @@ class Mesh {
 	static loadFromPath(path) {
 
 		if (Mesh.meshCache.has(path)) {
-			return Mesh.meshCache.get(path).clone();
+			const mesh = Mesh.meshCache.get(path).clone();
+			return mesh;
 		}
 
 		// Load mesh from file path
@@ -301,7 +301,7 @@ class Mesh {
 		}
 
 		Mesh.meshCache.set(path, mesh);
-		return mesh;
+		return mesh.clone();
 	}
 }
 

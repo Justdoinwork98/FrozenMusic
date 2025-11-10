@@ -122,52 +122,52 @@ export default function ModelPreview() {
 			container.removeChild(renderer.domElement);
 		};
 	}, []);
-	
-	useEffect(() => {
+
+	const handleMeshBuffers = (meshes) => {
 		const scene = sceneRef.current;
 		if (!scene) return;
 
-		const handleMeshBuffers = (meshes) => {
-			// Remove previous model
-			if (modelRef.current) {
-				for (const m of modelRef.current) {
-					scene.remove(m);
-					m.traverse(obj => {
-						if (obj.geometry) obj.geometry.dispose();
-						if (obj.material) {
-							if (Array.isArray(obj.material)) obj.material.forEach(mat => mat.dispose());
-							else obj.material.dispose();
-						}
-					});
-				}
-				modelRef.current = [];
+		// Remove previous model
+		if (modelRef.current) {
+			for (const m of modelRef.current) {
+				scene.remove(m);
+				m.traverse(obj => {
+					if (obj.geometry) obj.geometry.dispose();
+					if (obj.material) {
+						if (Array.isArray(obj.material)) obj.material.forEach(mat => mat.dispose());
+						else obj.material.dispose();
+					}
+				});
 			}
-
 			modelRef.current = [];
+		}
 
-			meshes.forEach(mesh => {
-				const geometry = new THREE.BufferGeometry();
-				geometry.setAttribute('position', new THREE.BufferAttribute(mesh.vertices, 3));
-				geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
-				geometry.computeVertexNormals();
+		modelRef.current = [];
 
-				const material = new THREE.MeshStandardMaterial({ color: 0x0077ff, side: THREE.DoubleSide });
-				const meshObj = new THREE.Mesh(geometry, material);
-				scene.add(meshObj);
-				modelRef.current.push(meshObj);
+		meshes.forEach(mesh => {
+			const geometry = new THREE.BufferGeometry();
+			geometry.setAttribute('position', new THREE.BufferAttribute(mesh.vertices, 3));
+			geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+			geometry.computeVertexNormals();
 
-				if (drawWireframe) {
-					const wireframe = new THREE.WireframeGeometry(geometry);
-					const line = new THREE.LineSegments(wireframe);
-					line.material.depthTest = false;
-					line.material.opacity = 0.5;
-					line.material.transparent = true;
-					scene.add(line);
-					wireframeRef.current = line;
-				}
-			});
-		};
+			const material = new THREE.MeshStandardMaterial({ color: 0x0077ff, side: THREE.DoubleSide });
+			const meshObj = new THREE.Mesh(geometry, material);
+			scene.add(meshObj);
+			modelRef.current.push(meshObj);
 
+			if (drawWireframe) {
+				const wireframe = new THREE.WireframeGeometry(geometry);
+				const line = new THREE.LineSegments(wireframe);
+				line.material.depthTest = false;
+				line.material.opacity = 0.5;
+				line.material.transparent = true;
+				scene.add(line);
+				wireframeRef.current = line;
+			}
+		});
+	};
+
+	useEffect(() => {
 		window.electronAPI.onPreviewUpdate(handleMeshBuffers);
 	}, []);
 
