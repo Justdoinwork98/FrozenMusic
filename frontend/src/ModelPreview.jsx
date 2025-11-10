@@ -152,6 +152,7 @@ export default function ModelPreview() {
 
 		// previewModels is an array of { vertices: [], tris: [] }
 		modelRef.current = [];
+		console.log("starting to load preview model");
 		for (const previewMesh of previewModel) {
 			const geometry = new THREE.BufferGeometry();
 			const vertices = new Float32Array(previewMesh.vertices.length * 3);
@@ -185,6 +186,7 @@ export default function ModelPreview() {
 				wireframeRef.current = line;
 			}
 		}
+		console.log("finished loading preview model");
 
 
 	}, [previewModel]);

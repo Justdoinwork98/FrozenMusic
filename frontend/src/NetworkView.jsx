@@ -265,6 +265,7 @@ export default function NetworkView() {
 
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+	const [hoveredEdgeId, setHoveredEdgeId] = useState(null);
 
 	const [menuPos, setMenuPos] = useState(null);
 
@@ -293,6 +294,7 @@ export default function NetworkView() {
 	}, []);
 
 	const handleNetworkContextMenu = (e) => {
+		if (hoveredEdgeId) return; // Don't open menu if right-clicking on an edge
 		e.preventDefault();
 		setMenuPos({ x: e.clientX, y: e.clientY });
 	};
@@ -477,13 +479,30 @@ export default function NetworkView() {
 			onPaneClick={onPaneClick}
 			ref={ref}
 			nodes={nodes}
-			edges={edges}
+			edges={edges.map((e) => ({
+			...e,
+			style: {
+				...e.style,
+				strokeWidth: (e.id === hoveredEdgeId ? 4 : 2),
+			},
+			}))}
 			nodeTypes={nodeTypes}
 			onNodesChange={onNodesChange}
 			onEdgesChange={onEdgesChange}
 			onConnect={onConnect}
 			onEdgesDelete={onEdgesDelete}
 			fitView
+			onEdgeContextMenu={(event, edge) => {
+				event.preventDefault();
+				window.electronAPI.removeConnection({
+					fromNodeId: parseInt(edge.source),
+					outputIndex: parseInt(edge.sourceHandle.split('-')[1]),
+					toNodeId: parseInt(edge.target),
+					inputIndex: parseInt(edge.targetHandle.split('-')[1]),
+				});
+			}}
+			onEdgeMouseEnter={(e, edge) => setHoveredEdgeId(edge.id)}
+			onEdgeMouseLeave={() => setHoveredEdgeId(null)}
 			>
 			<Controls />
 			<Background variant="dots" gap={32} size={1} color="#ffffff36" />
