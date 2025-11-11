@@ -300,7 +300,7 @@
               "name": "Path",
               "type": "MeshPath",
               "connection": null,
-              "defaultValue": "C:\\Git\\FrozenMusic\\monkey.obj"
+              "defaultValue": "monkey.obj"
             }
           ],
           "outputs": [

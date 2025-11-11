@@ -1,5 +1,6 @@
 const fs = require('fs');
 const MidiParser = require('midi-parser-js');
+const { absoluteToRelativePath } = require('./utils.js');
 
 class MidiDataManager {
 	constructor() {
@@ -24,7 +25,8 @@ class MidiDataManager {
 	}
 
 	readMidiFile(filePath, then) {
-		this.loadedMidiFile = filePath;
+		const relativePath = absoluteToRelativePath(filePath);
+		this.loadedMidiFile = relativePath;
 
 		fs.readFile(filePath, 'base64', (err, data) => {
 			if (err) {

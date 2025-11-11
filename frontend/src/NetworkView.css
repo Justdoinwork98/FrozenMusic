@@ -66,6 +66,12 @@
 	width: 60px;
 }
 
+input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+	display: none;
+}
+
 .no-network-container {
 	text-align: center;
 }
