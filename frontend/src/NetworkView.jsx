@@ -129,6 +129,30 @@ const ModifierNode = ({ data, id, selected }) => {
 
 	const nodeColor = getNodeClassColor(data.nodeClass);
 
+	function adjustValue(val, base) {
+		const parsedVal = parseFloat(val) || 0;
+		const parsedBase = parseFloat(base) || 0;
+		const step = Math.max(0.001, parsedBase * 0.1);
+
+		const getPrecision = (num) => {
+			const s = num.toString();
+			if (s.includes("e")) {
+				const [, exp] = s.split("e-");
+				return exp ? parseInt(exp) : 0;
+			}
+			return (s.split(".")[1] || "").length;
+		};
+
+		const precision = Math.max(getPrecision(parsedBase), getPrecision(step));
+
+		return {
+			step,
+			precision,
+			add: +(parsedVal + step).toFixed(precision),
+			sub: +(parsedVal - step).toFixed(precision),
+		};
+	}
+
 	return (
 		<div
 			className={`node modifier-node ${selected ? "selected" : ""}`}
@@ -181,17 +205,17 @@ const ModifierNode = ({ data, id, selected }) => {
 								width: "100%",
 							}}
 						>
-							{input.type!=="MeshPath"&& (
-							<Handle
-								type="target"
-								position={Position.Left}
-								id={getHandleId(false, i)}
-								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff" : getConnectionColor(input.type), left: -12 }}
-							/>)}
+							{input.type !== "MeshPath" && (
+								<Handle
+									type="target"
+									position={Position.Left}
+									id={getHandleId(false, i)}
+									style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff" : getConnectionColor(input.type), left: -12 }}
+								/>)}
 							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
 							{/* Show input field only if not connected */}
-							{!input.isConnected && (!input.isInputRequired || input.type==="MeshPath") && (
+							{!input.isConnected && (!input.isInputRequired || input.type === "MeshPath") && (
 								<>
 									{input.type === "Number" && (
 										<input
@@ -211,57 +235,62 @@ const ModifierNode = ({ data, id, selected }) => {
 										/>
 									)}
 									{input.type === "Number" && (
-										
-									<div
-										style={{
-										display: "flex",
-										flexDirection: "row",
-										marginLeft: 2,
-										}}
-									>
-										<button
-										style={{
-											lineHeight: "10px",
-											padding: "0 4px",
-											fontSize: 10,
-											height: 14,
-										}}
-										onClick={(e) => {
-											e.stopPropagation();
-											const inputEl = e.currentTarget.parentElement.previousSibling;
-											const val = parseFloat(inputEl.value) || 0;
-											inputEl.value = val + Math.max(0.001, input.defaultValue*0.1);
-											window.electronAPI.updateNodeInputDefault({
-												nodeId: parseInt(id),
-												inputIndex: i,
-												value: inputEl.value,
-											});
-										}}
+
+										<div
+											style={{
+												display: "flex",
+												flexDirection: "row",
+												marginLeft: 2,
+											}}
 										>
-										▲
-										</button>
-										<button
-										style={{
-											lineHeight: "10px",
-											padding: "0 4px",
-											fontSize: 10,
-											height: 14,
-										}}
-										onClick={(e) => {
-											e.stopPropagation();
-											const inputEl = e.currentTarget.parentElement.previousSibling;
-											const val = parseFloat(inputEl.value) || 0;
-											inputEl.value = val - Math.max(0.001, input.defaultValue*0.1);
-											window.electronAPI.updateNodeInputDefault({
-												nodeId: parseInt(id),
-												inputIndex: i,
-												value: inputEl.value,
-											});
-										}}
-										>
-										▼
-										</button>
-									</div>)}
+											<button
+												style={{
+													lineHeight: "10px",
+													padding: "0 4px",
+													fontSize: 10,
+													height: 14,
+												}}
+												onClick={(e) => {
+													e.stopPropagation();
+													const inputEl = e.currentTarget.parentElement.previousSibling;
+													const val = inputEl.value;
+													const { add } = adjustValue(val, input.defaultValue);
+
+													inputEl.value = add;
+
+													window.electronAPI.updateNodeInputDefault({
+														nodeId: parseInt(id),
+														inputIndex: i,
+														value: add,
+													});
+												}}
+											>
+												▲
+											</button>
+											<button
+												style={{
+													lineHeight: "10px",
+													padding: "0 4px",
+													fontSize: 10,
+													height: 14,
+												}}
+												onClick={(e) => {
+													e.stopPropagation();
+													const inputEl = e.currentTarget.parentElement.previousSibling;
+													const val = inputEl.value;
+													const { sub } = adjustValue(val, input.defaultValue);
+
+													inputEl.value = sub;
+													window.electronAPI.updateNodeInputDefault({
+														nodeId: parseInt(id),
+														inputIndex: i,
+														value: sub,
+													});
+												}}
+											>
+												▼
+											</button>
+										</div>)}
 
 									{input.type === "Boolean" && (
 										<input
@@ -369,7 +398,7 @@ export default function NetworkView() {
 
 	const handleSelect = (nodeType) => {
 		setMenuPos(null);
-    	const position = project({ x: menuPos.x, y: menuPos.y });
+		const position = project({ x: menuPos.x, y: menuPos.y });
 		const options = {
 			x: position.x,
 			y: position.y,
@@ -386,7 +415,7 @@ export default function NetworkView() {
 
 			let updatedNodes = [];
 			let updatedEdges = [];
-			
+
 			for (const node of nodeList) {
 				let newNode = {
 					id: node.id.toString(),
@@ -483,89 +512,89 @@ export default function NetworkView() {
 
 
 	return (
-	<div className="networkview" onContextMenu={handleNetworkContextMenu}>
+		<div className="networkview" onContextMenu={handleNetworkContextMenu}>
 
-		{/* Network selector buttons */}
-		<div className="network-selector" style={{
-			position: "absolute",
-			top: 30,
-			left: 10,
-			display: "flex",
-			gap: "6px",
-			zIndex: 10
-		}}>
-		{Array.from({ length: numberOfTracks }).map((_, i) => (
-			<button
-				key={i}
-				onClick={() => selectNetwork(i)}
-				className={"network-select-button" + (activeNetworkIndex === i ? " active" : "")}
-				title={`Select MIDI track ${i+1}`}
-			>
-			{i+1}
-			</button>
-		))}
-		</div>
+			{/* Network selector buttons */}
+			<div className="network-selector" style={{
+				position: "absolute",
+				top: 30,
+				left: 10,
+				display: "flex",
+				gap: "6px",
+				zIndex: 10
+			}}>
+				{Array.from({ length: numberOfTracks }).map((_, i) => (
+					<button
+						key={i}
+						onClick={() => selectNetwork(i)}
+						className={"network-select-button" + (activeNetworkIndex === i ? " active" : "")}
+						title={`Select MIDI track ${i + 1}`}
+					>
+						{i + 1}
+					</button>
+				))}
+			</div>
 
-		{nodes.length === 0 ? (
-		// Show buttons if no nodes are loaded
-		<div className="no-network-container">
-			<h2 className="intro-text">Welcome to the frozen music editor!</h2>
-			<h5 className="intro-text">Get started by loading a project or starting a project from a MIDI file</h5>
-			<p onClick={() => window.electronAPI.openProject()} className="open-project-button">
-			Load Project...
-			</p>
-			<p onClick={() => window.electronAPI.openMidiFile()} className="open-project-button">
-			Load MIDI File...
-			</p>
-		</div>
-		) : (
-		<>
-			{menuPos && (
-			<NetworkContextMenu
-				x={menuPos.x}
-				y={menuPos.y}
-				onClose={() => setMenuPos(null)}
-				onSelect={handleSelect}
-				possibleNodes={possibleNodes}
-			/>
+			{nodes.length === 0 ? (
+				// Show buttons if no nodes are loaded
+				<div className="no-network-container">
+					<h2 className="intro-text">Welcome to the frozen music editor!</h2>
+					<h5 className="intro-text">Get started by loading a project or starting a project from a MIDI file</h5>
+					<p onClick={() => window.electronAPI.openProject()} className="open-project-button">
+						Load Project...
+					</p>
+					<p onClick={() => window.electronAPI.openMidiFile()} className="open-project-button">
+						Load MIDI File...
+					</p>
+				</div>
+			) : (
+				<>
+					{menuPos && (
+						<NetworkContextMenu
+							x={menuPos.x}
+							y={menuPos.y}
+							onClose={() => setMenuPos(null)}
+							onSelect={handleSelect}
+							possibleNodes={possibleNodes}
+						/>
+					)}
+
+					<ReactFlow
+						onNodeDragStop={onNodeDragStop}
+						onNodeClick={(event, node) => setSelectedNode(node)}
+						onPaneClick={onPaneClick}
+						ref={ref}
+						nodes={nodes}
+						edges={edges.map((e) => ({
+							...e,
+							style: {
+								...e.style,
+								strokeWidth: (e.id === hoveredEdgeId ? 4 : 2),
+							},
+						}))}
+						nodeTypes={nodeTypes}
+						onNodesChange={onNodesChange}
+						onEdgesChange={onEdgesChange}
+						onConnect={onConnect}
+						onEdgesDelete={onEdgesDelete}
+						fitView
+						onEdgeContextMenu={(event, edge) => {
+							event.preventDefault();
+							window.electronAPI.removeConnection({
+								fromNodeId: parseInt(edge.source),
+								outputIndex: parseInt(edge.sourceHandle.split('-')[1]),
+								toNodeId: parseInt(edge.target),
+								inputIndex: parseInt(edge.targetHandle.split('-')[1]),
+							});
+						}}
+						onEdgeMouseEnter={(e, edge) => setHoveredEdgeId(edge.id)}
+						onEdgeMouseLeave={() => setHoveredEdgeId(null)}
+					>
+						<Controls />
+						<Background variant="dots" gap={32} size={1} color="#ffffff36" />
+					</ReactFlow>
+				</>
 			)}
-
-			<ReactFlow
-			onNodeDragStop={onNodeDragStop}
-			onNodeClick={(event, node) => setSelectedNode(node)}
-			onPaneClick={onPaneClick}
-			ref={ref}
-			nodes={nodes}
-			edges={edges.map((e) => ({
-			...e,
-			style: {
-				...e.style,
-				strokeWidth: (e.id === hoveredEdgeId ? 4 : 2),
-			},
-			}))}
-			nodeTypes={nodeTypes}
-			onNodesChange={onNodesChange}
-			onEdgesChange={onEdgesChange}
-			onConnect={onConnect}
-			onEdgesDelete={onEdgesDelete}
-			fitView
-			onEdgeContextMenu={(event, edge) => {
-				event.preventDefault();
-				window.electronAPI.removeConnection({
-					fromNodeId: parseInt(edge.source),
-					outputIndex: parseInt(edge.sourceHandle.split('-')[1]),
-					toNodeId: parseInt(edge.target),
-					inputIndex: parseInt(edge.targetHandle.split('-')[1]),
-				});
-			}}
-			onEdgeMouseEnter={(e, edge) => setHoveredEdgeId(edge.id)}
-			onEdgeMouseLeave={() => setHoveredEdgeId(null)}
-			>
-			<Controls />
-			<Background variant="dots" gap={32} size={1} color="#ffffff36" />
-			</ReactFlow>
-		</>
-		)}
-	</div>
+		</div>
 	);
 }
