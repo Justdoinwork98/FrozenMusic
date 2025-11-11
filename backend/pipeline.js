@@ -239,10 +239,10 @@ class Pipeline {
 				}
 
 				// Send the new data to the frontend
-				this.runPipelineAndUpdatePreview();
-				this.sendNetworkToFrontend();
 				this.sendProjectNameToFrontend();
-				this.sendNumberOfTracksToFrontend();;
+				this.sendNumberOfTracksToFrontend();
+				this.sendNetworkToFrontend();
+				this.runPipelineAndUpdatePreview();
 			});
 		}
 	}
