@@ -1,5 +1,7 @@
 const fs = require('fs');
 const { dialog } = require('electron');
+const path = require("path");
+const { absoluteToRelativePath } = require("../utils.js");
 
 const NODE_INPUT_OUTPUT_TYPES = {
 	mesh: "Mesh",
@@ -31,7 +33,12 @@ class InputPoint {
 			const result = dialog.showOpenDialogSync(dialogOptions);
 
 			if (result && result.length > 0) {
-				this.defaultValue = result[0];
+
+				// Convert to relative path
+				const absolutePath = result[0];
+				const relativePath = absoluteToRelativePath(absolutePath);
+
+				this.defaultValue = relativePath;
 			}
 			return;
 		}

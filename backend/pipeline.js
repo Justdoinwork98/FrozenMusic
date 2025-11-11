@@ -62,7 +62,9 @@ class Pipeline {
 		const node = network.nodes.get(nodeId);
 		if (node && inputIndex >= 0 && inputIndex < node.inputs.length) {
 			node.inputs[inputIndex].setDefaultValue(value);
-			this.sendNetworkToFrontend();
+
+			// Don't send the network since this change does not affect structure
+			//this.sendNetworkToFrontend();
 			this.runPipelineAndUpdatePreview();
 		}
 	}

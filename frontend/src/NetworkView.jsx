@@ -325,6 +325,7 @@ export default function NetworkView() {
 	// Subcribe to backend updates of node system
 	useEffect(() => {
 		window.electronAPI.onNodeNetworkUpdate((nodeList) => {
+			console.log("Received node network update from backend!");
 			// Update nodes and edges based on data from backend
 
 			let updatedNodes = [];
