@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls, OBJLoader } from "three-stdlib";
+import "./ModelPreview.css";
 
 export default function ModelPreview() {
 	const containerRef = useRef();
@@ -92,14 +93,20 @@ export default function ModelPreview() {
 		// Handle resizing
 		function resize() {
 			const { clientWidth, clientHeight } = container;
+            if (clientWidth === 0 || clientHeight === 0) return;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
-			renderer.setSize(clientWidth, clientHeight);
+			renderer.setSize(clientWidth, clientHeight, false);
+            // console.log(`Renderer resized: ${clientWidth}x${clientHeight}`);
 		};
 
 		const resizeObserver = new ResizeObserver(resize);
 		resizeObserver.observe(container);
+        if(container.parentElement){
+            resizeObserver.observe(container.parentElement);
+        }
 		resize();
+        window.addEventListener("resize", resize);
 
 		// Save refs
 		sceneRef.current = scene;
@@ -173,6 +180,6 @@ export default function ModelPreview() {
 
 
 	return (
-		<div ref={containerRef} className="w-full h-full relative overflow-hidden" />
+		<div ref={containerRef} className="model-preview-container" />
 	);
 }
