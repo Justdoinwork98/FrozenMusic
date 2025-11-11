@@ -230,7 +230,7 @@ const ModifierNode = ({ data, id, selected }) => {
 											e.stopPropagation();
 											const inputEl = e.currentTarget.parentElement.previousSibling;
 											const val = parseFloat(inputEl.value) || 0;
-											inputEl.value = val + Math.max(0.001, val*0.1);
+											inputEl.value = val + Math.max(0.001, input.defaultValue*0.1);
 											window.electronAPI.updateNodeInputDefault({
 												nodeId: parseInt(id),
 												inputIndex: i,
@@ -251,7 +251,7 @@ const ModifierNode = ({ data, id, selected }) => {
 											e.stopPropagation();
 											const inputEl = e.currentTarget.parentElement.previousSibling;
 											const val = parseFloat(inputEl.value) || 0;
-											inputEl.value = val - Math.max(0.001, val*0.1);
+											inputEl.value = val - Math.max(0.001, input.defaultValue*0.1);
 											window.electronAPI.updateNodeInputDefault({
 												nodeId: parseInt(id),
 												inputIndex: i,
