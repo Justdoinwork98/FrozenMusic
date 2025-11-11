@@ -181,12 +181,13 @@ const ModifierNode = ({ data, id, selected }) => {
 								width: "100%",
 							}}
 						>
+							{input.type!=="MeshPath"&& (
 							<Handle
 								type="target"
 								position={Position.Left}
 								id={getHandleId(false, i)}
 								style={{ background: (!input.isConnected && input.isInputRequired) ? "#9c0909ff" : getConnectionColor(input.type), left: -12 }}
-							/>
+							/>)}
 							<span style={{ marginLeft: 6, fontSize: 12, opacity: 0.8 }}>{input.name}</span>
 
 							{/* Show input field only if not connected */}
@@ -194,7 +195,7 @@ const ModifierNode = ({ data, id, selected }) => {
 								<>
 									{input.type === "Number" && (
 										<input
-											type="number"
+											input="numeric"
 											step="any"
 											className="input-constant-field"
 											defaultValue={input.defaultValue}
@@ -206,8 +207,61 @@ const ModifierNode = ({ data, id, selected }) => {
 												};
 												window.electronAPI.updateNodeInputDefault(options);
 											}}
+											onMouseDown={(e) => e.stopPropagation()}
 										/>
 									)}
+									{input.type === "Number" && (
+										
+									<div
+										style={{
+										display: "flex",
+										flexDirection: "row",
+										marginLeft: 2,
+										}}
+									>
+										<button
+										style={{
+											lineHeight: "10px",
+											padding: "0 4px",
+											fontSize: 10,
+											height: 14,
+										}}
+										onClick={(e) => {
+											e.stopPropagation();
+											const inputEl = e.currentTarget.parentElement.previousSibling;
+											const val = parseFloat(inputEl.value) || 0;
+											inputEl.value = val + Math.max(0.001, val*0.1);
+											window.electronAPI.updateNodeInputDefault({
+												nodeId: parseInt(id),
+												inputIndex: i,
+												value: inputEl.value,
+											});
+										}}
+										>
+										▲
+										</button>
+										<button
+										style={{
+											lineHeight: "10px",
+											padding: "0 4px",
+											fontSize: 10,
+											height: 14,
+										}}
+										onClick={(e) => {
+											e.stopPropagation();
+											const inputEl = e.currentTarget.parentElement.previousSibling;
+											const val = parseFloat(inputEl.value) || 0;
+											inputEl.value = val - Math.max(0.001, val*0.1);
+											window.electronAPI.updateNodeInputDefault({
+												nodeId: parseInt(id),
+												inputIndex: i,
+												value: inputEl.value,
+											});
+										}}
+										>
+										▼
+										</button>
+									</div>)}
 
 									{input.type === "Boolean" && (
 										<input
@@ -221,6 +275,7 @@ const ModifierNode = ({ data, id, selected }) => {
 												};
 												window.electronAPI.updateNodeInputDefault(options);
 											}}
+											onMouseDown={(e) => e.stopPropagation()}
 										/>
 									)}
 
@@ -235,6 +290,7 @@ const ModifierNode = ({ data, id, selected }) => {
 												};
 												window.electronAPI.updateNodeInputDefault(options);
 											}}
+											onMouseDown={(e) => e.stopPropagation()}
 										>
 											{input.defaultValue ? "Change Mesh" : "Choose Mesh"}
 										</button>

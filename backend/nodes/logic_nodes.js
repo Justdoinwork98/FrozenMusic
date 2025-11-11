@@ -41,11 +41,11 @@ class SwitchNode extends Node {
 	constructor() {
 		const inputs = [
 			new InputPoint("Condition", NODE_INPUT_OUTPUT_TYPES.boolean, 0),
-			new InputPoint("True Output", NODE_INPUT_OUTPUT_TYPES.any, 1),
-			new InputPoint("False Output", NODE_INPUT_OUTPUT_TYPES.any, 2),
+			new InputPoint("True Output", NODE_INPUT_OUTPUT_TYPES.number, 1),
+			new InputPoint("False Output", NODE_INPUT_OUTPUT_TYPES.number, 2),
 		];
 		const outputs = [
-			new OutputPoint("Output", NODE_INPUT_OUTPUT_TYPES.any),
+			new OutputPoint("Output", NODE_INPUT_OUTPUT_TYPES.number),
 		];
 		super("Switch", inputs, outputs);
 		this.nodeClass = 'logic';
