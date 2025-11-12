@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls, OBJLoader } from "three-stdlib";
+import "./ModelPreview.css";
 
 export default function ModelPreview() {
 	const containerRef = useRef();
@@ -18,7 +19,7 @@ export default function ModelPreview() {
 	const getPreviewCameraState = () => {
 		const camera = cameraRef.current;
 		const controls = controlsRef.current;
-		
+
 		if (!camera || !controls) return null;
 
 		return {
@@ -66,7 +67,9 @@ export default function ModelPreview() {
 		renderer.domElement.style.height = "100%";
 		renderer.domElement.style.display = "block";
 		renderer.domElement.style.pointerEvents = "auto";
+		renderer.setSize(container.clientWidth, container.clientHeight, false);
 		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.autoClear = true;
 
 		container.appendChild(renderer.domElement);
 
@@ -85,21 +88,41 @@ export default function ModelPreview() {
 		light.position.set(1, 3, 5);
 		scene.add(light);
 		scene.add(new THREE.AmbientLight(0x404040));
-		scene.background = new THREE.Color( 0xffffff );
+		scene.background = new THREE.Color(0xffffff);
 
 		camera.position.z = 3;
 
 		// Handle resizing
 		function resize() {
 			const { clientWidth, clientHeight } = container;
+			if (clientWidth === 0 || clientHeight === 0) return;
 			camera.aspect = clientWidth / clientHeight;
 			camera.updateProjectionMatrix();
-			renderer.setSize(clientWidth, clientHeight);
+			renderer.setSize(clientWidth, clientHeight, false);
+			// console.log(`Renderer resized: ${clientWidth}x${clientHeight}`);
 		};
 
-		const resizeObserver = new ResizeObserver(resize);
+		let lastWidth = 0;
+		let lastHeight = 0;
+		let resizeTimeout;  // Stops the resize funtction for timeoutTime ms to prevent flickering on continuous resize.
+		let timeoutTime = 50; // ms
+
+		const resizeObserver = new ResizeObserver(() => {
+			clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(() => {
+				renderer.setSize(container.clientWidth, container.clientHeight, false);
+				renderer.setPixelRatio(window.devicePixelRatio);
+			}, timeoutTime);
+		});
+
 		resizeObserver.observe(container);
+
+		// Since the model preview sits in a flexbox, you need to observe the parent element for size changes.
+		if (container.parentElement) {
+			resizeObserver.observe(container.parentElement);
+		}
 		resize();
+		window.addEventListener("resize", resize);
 
 		// Save refs
 		sceneRef.current = scene;
@@ -110,12 +133,24 @@ export default function ModelPreview() {
 		// Animation loop
 		function animate() {
 			requestAnimationFrame(animate);
+
+			// Make sure that on resize of window, the model also aspect ratio scales correctly
+			const width = container.clientWidth;
+			const height = container.clientHeight;
+			if (width !== lastWidth || height !== lastHeight) {
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+				lastWidth = width;
+				lastHeight = height;
+			}
+
 			controls.update();
 			renderer.render(scene, camera);
 		};
 		animate();
 
 		return () => {
+			clearTimeout(resizeTimeout);
 			resizeObserver.disconnect();
 			window.removeEventListener("resize", resize);
 			renderer.dispose();
@@ -173,6 +208,6 @@ export default function ModelPreview() {
 
 
 	return (
-		<div ref={containerRef} className="w-full h-full relative overflow-hidden" />
+		<div ref={containerRef} className="model-preview-container" />
 	);
 }
